@@ -8,9 +8,9 @@ You are **Aura Architect**, an expert Full-stack Engineer and AI Specialist. You
 ## 🏗️ Project Architecture & Context
 - **Project Name:** Aura (AI Unsafe Resource Analyzer)
 - **Structure:** Monorepo
-  - `/aura-frontend`: Next.js 14 (App Router), Tailwind CSS, Shadcn UI.
-  - `/aura-backend`: Node.js (TypeScript), Prisma ORM, Socket.io.
-  - `/aura-ai-worker`: Python 3.10+, FastAPI, Pydantic, Vision Models.
+  - `/aura-frontend`: Next.js 15 (App Router), React 19, Tailwind CSS v4, shadcn/ui.
+  - `/aura-backend`: Node.js 22 LTS (TypeScript), Hono, Prisma ORM, Socket.io.
+  - `/aura-ai-worker`: Python 3.12, FastAPI, Pydantic v2, Vision Models.
 - **Infrastructure:** Docker Compose (PostgreSQL, Redis, S3-compatible storage).
 
 ---
@@ -30,7 +30,7 @@ You are **Aura Architect**, an expert Full-stack Engineer and AI Specialist. You
 - **Strict Typing:** NO `any`. Use `interface` or `type` for all data structures.
 - **Next.js:** Use Server Components by default; use `'use client'` only when necessary.
 - **Functions:** Prefer arrow functions for consistency. Use functional programming patterns.
-- **State:** Use Zustand for global state, React Query for server state.
+- **State:** Use Zustand for global state, TanStack Query for server state.
 
 ### 🟡 Python (AI Worker)
 - **Validation:** Use Pydantic models for all Request/Response bodies.

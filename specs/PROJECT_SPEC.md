@@ -6,12 +6,14 @@
 - **Core Value:** Instant moderation to maintain platform safety with low latency.
 
 ## 2. Tech Stack
-- **Frontend (Dashboard):** Next.js 14 (App Router), Tailwind CSS, Shadcn UI, Lucide Icons.
-- **Backend (Gateway):** Node.js (Express or Hono) + TypeScript.
-- **AI Worker (Inference):** Python (FastAPI) + Open-source Vision Models (e.g., NudeNet, Transformers).
-- **Communication:** WebSockets (Socket.io) + Redis (for Pub/Sub and caching).
-- **Database:** PostgreSQL + Prisma ORM.
-- **Infrastructure:** Docker & Docker Compose.
+- **Monorepo & Tooling:** pnpm workspaces, TypeScript 5.x (strict), ESLint + Prettier.
+- **Frontend (Dashboard):** Next.js 15 (App Router) + React 19, Tailwind CSS v4, shadcn/ui, `lucide-react`, Zustand (global state), TanStack Query (server state).
+- **Backend (Gateway/API):** Node.js 22 LTS + TypeScript, Hono (HTTP API), Socket.io (real-time events), Prisma ORM.
+- **AI Worker (Inference):** Python 3.12, FastAPI, Pydantic v2, open-source vision models (NudeNet / Transformers) with optional ONNX Runtime acceleration.
+- **Async & Communication Layer:** Redis 7 (Pub/Sub + cache + lightweight queues), WebSockets (`image:processed` events to dashboard).
+- **Database:** PostgreSQL 16 + Prisma Migrate.
+- **Object Storage:** S3-compatible storage (MinIO for local/dev; cloud S3-compatible in production).
+- **Infrastructure & Runtime:** Docker + Docker Compose, environment-based config via `.env`.
 
 ## 3. Architecture & Data Flow
 - **Workflow:**

@@ -1,0 +1,11 @@
+{
+  "name": "aura",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.17.0",
+  "scripts": {
+    "dev:frontend": "pnpm --filter aura-frontend dev",
+    "dev:backend": "pnpm --filter aura-backend dev",
+    "build": "pnpm -r build"
+  }
+}

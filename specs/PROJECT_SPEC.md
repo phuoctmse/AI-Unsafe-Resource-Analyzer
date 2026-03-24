@@ -49,7 +49,7 @@
 
 ## 11. Implementation Roadmap
 - [x] **Phase 1: Workspace Initialization** - Setup pnpm monorepo and baseline service skeletons (frontend/backend/worker). Docker Compose and Terraform base pending in next phase.
-- [ ] **Phase 2: Database & Storage** - Configure Prisma, PostgreSQL, and MinIO/S3 upload logic.
+- [x] **Phase 2: Database & Storage** - Prisma migration applied, PostgreSQL/Redis/MinIO wired in Docker Compose, and backend presigned upload endpoint implemented.
 - [ ] **Phase 3: AI Inference Worker** - Build Python FastAPI worker with ONNX Runtime and NudeNet model.
 - [ ] **Phase 4: Real-time Gateway** - Implement Hono API, Socket.io, and Redis Queue integration.
 - [ ] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
@@ -59,6 +59,16 @@
 - **Canonical tracker:** This file (`specs/PROJECT_SPEC.md`) is the single source of truth for task progress.
 - **README policy:** `README.md` stays repository-facing and should contain only summarized roadmap/status.
 - **Update rule:** When a phase status changes, update this roadmap first, then sync any high-level summary in `README.md`.
+
+## 13. Current Execution Notes
+- **Phase 2 status:** Completed.
+- **Completed items:**
+  1. Prisma schema + migration (`init_imagelog`) applied to local PostgreSQL.
+  2. Docker Compose services running with health checks (`postgres`, `redis`, `minio`).
+  3. Backend `POST /uploads/presign` endpoint implemented:
+     - creates `ImageLog` in `PENDING`
+     - returns MinIO presigned `PUT` URL and `imageUrl`.
+- **Important local note:** PostgreSQL host port mapped to `5433` to avoid host-level conflicts on `5432`.
 
 ---
 

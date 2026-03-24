@@ -55,6 +55,46 @@ cd aura-ai-worker
 python -m pip install -r requirements.txt
 ```
 
+### Start local infrastructure (Phase 2)
+
+```bash
+docker compose up -d
+```
+
+### Prisma setup
+
+```bash
+# Ensure aura-backend/.env contains DATABASE_URL
+pnpm --filter aura-backend prisma:validate
+pnpm --filter aura-backend prisma:generate
+pnpm --filter aura-backend exec prisma migrate dev --name init_imagelog
+```
+
+### Storage upload API (current)
+
+```bash
+POST /uploads/presign
+```
+
+Request body:
+
+```json
+{
+  "filename": "sample.jpg",
+  "contentType": "image/jpeg"
+}
+```
+
+Response includes:
+- `imageId` (UUID)
+- `key` (object key in MinIO/S3 bucket)
+- `uploadUrl` (presigned `PUT` URL, 5 min expiry)
+- `imageUrl` (final object URL)
+
+### Quick troubleshooting
+- If Docker images fail to pull with EOF/auth errors, retry after Docker Hub connectivity is restored.
+- If Prisma shows `P1000` auth errors, update `aura-backend/.env` `DATABASE_URL` with valid local PostgreSQL credentials.
+
 ## 📌 Notes
 - This repository follows a monorepo structure with independent services.
 - Real-time moderation updates are emitted to dashboard clients via `image:processed` events.

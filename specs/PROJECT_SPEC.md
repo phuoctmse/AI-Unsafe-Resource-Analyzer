@@ -1,57 +1,84 @@
-# Project Specification: Aura - AI Unsafe Resource Analyzer
+# Project Specification: Aura - AI Unsafe Resource Analyzer (Full Edition)
 
-## 1. Project Overview
-- **Project Name:** Aura
-- **Concept:** A real-time automated system for moderating uploaded images using AI. It detects unsafe content (NSFW, violence, spam) and broadcasts results to a live dashboard.
-- **Core Value:** Instant moderation to maintain platform safety with low latency.
+## 1. Solution Architecture Discussion
+- **Pattern:** Event-Driven Microservices with Asynchronous Processing.
+- **Rationale:** High-concurrency I/O handled by Node.js (Hono) and heavy CPU/GPU computation delegated to Python (FastAPI).
+- **Decoupling:** Uses Redis as a message broker to ensure system resilience and handle traffic spikes.
 
-## 2. Tech Stack
-- **Monorepo & Tooling:** pnpm workspaces, TypeScript 5.x (strict), ESLint + Prettier.
-- **Frontend (Dashboard):** Next.js 15 (App Router) + React 19, Tailwind CSS v4, shadcn/ui, `lucide-react`, Zustand (global state), TanStack Query (server state).
-- **Backend (Gateway/API):** Node.js 22 LTS + TypeScript, Hono (HTTP API), Socket.io (real-time events), Prisma ORM.
-- **AI Worker (Inference):** Python 3.12, FastAPI, Pydantic v2, open-source vision models (NudeNet / Transformers) with optional ONNX Runtime acceleration.
-- **Async & Communication Layer:** Redis 7 (Pub/Sub + cache + lightweight queues), WebSockets (`image:processed` events to dashboard).
-- **Database:** PostgreSQL 16 + Prisma Migrate.
-- **Object Storage:** S3-compatible storage (MinIO for local/dev; cloud S3-compatible in production).
-- **Infrastructure & Runtime:** Docker + Docker Compose, environment-based config via `.env`.
 
-## 3. Architecture & Data Flow
-- **Workflow:**
-  1. **Ingestion:** User/Client uploads an image to the Node.js API.
-  2. **Storage:** Image is uploaded to S3-compatible storage; metadata is saved as `PENDING` in PostgreSQL.
-  3. **Analysis:** Node.js triggers the Python AI Worker (via HTTP or Queue).
-  4. **Processing:** AI Worker analyzes the image and returns a safety score and categories.
-  5. **Notification:** Backend updates PostgreSQL and emits a WebSocket event (`image:processed`) to the Dashboard.
 
-## 4. Database Schema (Prisma)
+## 2. High-Level Design (HLD)
+- **Flow:** User -> Nginx Proxy -> Hono API -> S3 Storage & Redis Queue -> Python Worker (ONNX Inference) -> PostgreSQL -> Socket.io Broadcast -> Next.js Dashboard.
+
+## 3. Service Description
+- **Aura-Gateway (Hono/Node.js 22):** Manages REST endpoints, JWT authentication, file upload validation, and WebSocket state.
+- **Aura-Worker (FastAPI/Python 3.12):** Dedicated AI service. Pulls tasks from Redis, performs image classification, and updates results.
+- **Aura-Dashboard (Next.js 15):** Real-time monitoring UI with administrative controls and moderation logs.
+
+## 4. Network Design
+- **Segmentation:** Public Subnet (Nginx, Frontend) and Private Subnet (API Gateway, AI Worker, Redis, PostgreSQL).
+- **Service Discovery:** Internal DNS resolution within Docker/Kubernetes cluster.
+
+## 5. Security Design (DevSecOps)
+- **Identity:** JWT-based Authentication with Role-Based Access Control (RBAC).
+- **Traffic:** End-to-end encryption via TLS (HTTPS/WSS).
+- **Infrastructure Security:** S3 Presigned URLs, Rate limiting (10 req/s), and Trivy vulnerability scanning.
+
+## 6. Operations & Monitoring Design
+- **Observability:** Prometheus metrics (latency/queue depth), Structured JSON logging, and OpenTelemetry tracing.
+- **Health Checks:** Liveness/Readiness probes on all containers.
+
+## 7. Disaster Recovery Design (DR)
+- **Backup:** Daily automated snapshots for PostgreSQL.
+- **Resilience:** Stateless design for instant recovery; Redis persistence (AOF/RDB) enabled.
+
+## 8. Performance & Scalability
+- **Horizontal Scaling:** Auto-scaling AI Workers based on Redis queue length.
+- **Optimization:** ONNX Runtime (sub-500ms latency), Content-addressable hashing for duplicate images.
+
+## 9. DevOps, CI/CD & IaC
+- **IaC:** Terraform v1.7+ for AWS (VPC, S3, RDS, ECS).
+- **CI/CD:** GitHub Actions for linting, testing, and multi-stage Docker builds.
+
+## 10. Coding Rules (Antigravity & Cursor Context)
+- **Patterns:** Use **"Plan-then-Execute"**. Always propose a file structure before writing code.
+- **Typing:** Strict TypeScript (no `any`). Python Pydantic models (v2) for all API schemas.
+- **Components:** **Atomic Design** for Shadcn UI components.
+- **Error Handling:** Centralized error middleware in Hono (Backend); Graceful degradation/Error Boundaries in Next.js (Frontend).
+- **Performance:** Asynchronous image processing; strictly do not block the main event loop.
+
+## 11. Implementation Roadmap
+- [x] **Phase 1: Workspace Initialization** - Setup pnpm monorepo and baseline service skeletons (frontend/backend/worker). Docker Compose and Terraform base pending in next phase.
+- [ ] **Phase 2: Database & Storage** - Configure Prisma, PostgreSQL, and MinIO/S3 upload logic.
+- [ ] **Phase 3: AI Inference Worker** - Build Python FastAPI worker with ONNX Runtime and NudeNet model.
+- [ ] **Phase 4: Real-time Gateway** - Implement Hono API, Socket.io, and Redis Queue integration.
+- [ ] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
+- [ ] **Phase 6: DevOps & Security** - Setup GitHub Actions, Trivy scan, and Rate limiting.
+
+## 12. Task Tracking Policy
+- **Canonical tracker:** This file (`specs/PROJECT_SPEC.md`) is the single source of truth for task progress.
+- **README policy:** `README.md` stays repository-facing and should contain only summarized roadmap/status.
+- **Update rule:** When a phase status changes, update this roadmap first, then sync any high-level summary in `README.md`.
+
+---
+
+## Technical Stack Summary
+- **Frontend:** Next.js 15, React 19, Tailwind CSS v4, Zustand.
+- **Backend:** Hono (Node.js 22), Prisma ORM, Socket.io.
+- **AI Worker:** FastAPI (Python 3.12), ONNX Runtime.
+- **Persistence:** PostgreSQL 16, Redis 7, MinIO (S3-compatible).
+
+## Database Schema (Prisma)
 ```prisma
 model ImageLog {
   id              String     @id @default(uuid())
   imageUrl        String
-  sourceId        String?    
   status          ScanStatus @default(PENDING)
   nsfwScore       Float?
   violenceScore   Float?
-  rawAiResponse   Json?      
   processedTimeMs Int?       
   createdAt       DateTime   @default(now())
 }
 
-enum ScanStatus {
-  PENDING
-  SAFE
-  UNSAFE
-  ERROR
-}
+enum ScanStatus { PENDING, SAFE, UNSAFE, ERROR }
 ```
-
-## 5. Coding Rules (Antigravity & Cursor Context)
-- **Patterns:** Use "Plan-then-Execute". Always propose a file structure before writing code.
-- **Typing:** Strict TypeScript (no `any`). Python Pydantic models for all API schemas.
-- **Components:** Atomic design for Shadcn UI components.
-- **Error Handling:** Centralized error middleware in Backend; Graceful degradation in Frontend.
-- **Performance:** Asynchronous image processing; do not block the main event loop.
-
-## 6. Implementation Roadmap
-- [ ] **Phase 1: Workspace Initialization** - Setup Monorepo structure and Docker environment.
-- [ ] **Phase 2: Database & Storage** - Configure Prisma, PostgreSQL, and S3 upload logic.

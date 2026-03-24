@@ -59,3 +59,8 @@ python -m pip install -r requirements.txt
 - This repository follows a monorepo structure with independent services.
 - Real-time moderation updates are emitted to dashboard clients via `image:processed` events.
 - See `specs/PROJECT_SPEC.md` for architecture, data flow, and roadmap.
+
+## 📚 Documentation Strategy
+- `README.md` is the **repository-facing document**: vision, architecture snapshot, stack, setup, and how to run.
+- `specs/PROJECT_SPEC.md` is the **implementation source of truth**: detailed architecture decisions, security/ops requirements, and task roadmap.
+- Any roadmap/status changes should be updated in `specs/PROJECT_SPEC.md` first, then reflected in `README.md` as a concise summary.

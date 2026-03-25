@@ -91,6 +91,14 @@ Response includes:
 - `uploadUrl` (presigned `PUT` URL, 5 min expiry)
 - `imageUrl` (final object URL)
 
+### AI worker skeleton (current)
+- Backend enqueues a scan task to Redis during `POST /uploads/presign`.
+- Worker consumes tasks and updates the DB by calling:
+  - `POST /internal/images/:id/processed`
+- Worker also exposes:
+  - `GET /health`
+  - `POST /analyze` (manual smoke test; bypasses Redis queue)
+
 ### Quick troubleshooting
 - If Docker images fail to pull with EOF/auth errors, retry after Docker Hub connectivity is restored.
 - If Prisma shows `P1000` auth errors, update `aura-backend/.env` `DATABASE_URL` with valid local PostgreSQL credentials.

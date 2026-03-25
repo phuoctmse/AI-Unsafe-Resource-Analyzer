@@ -51,7 +51,7 @@
 - [x] **Phase 1: Workspace Initialization** - Setup pnpm monorepo and baseline service skeletons (frontend/backend/worker). Docker Compose and Terraform base pending in next phase.
 - [x] **Phase 2: Database & Storage** - Prisma migration applied, PostgreSQL/Redis/MinIO wired in Docker Compose, and backend presigned upload endpoint implemented.
 - [x] **Phase 3: AI Inference Worker** - Implement Redis task consumer skeleton with deterministic mock inference and backend processed callback update.
-- [ ] **Phase 4: Real-time Gateway** - Implement Hono API, Socket.io, and Redis Queue integration.
+- [x] **Phase 4: Real-time Gateway** - Implement Hono API, Socket.io, and Redis Queue integration (upload completion -> Redis scan orchestration).
 - [ ] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
 - [ ] **Phase 6: DevOps & Security** - Setup GitHub Actions, Trivy scan, and Rate limiting.
 
@@ -76,6 +76,9 @@
   2. Worker consumes tasks via Redis `BLPOP`, runs deterministic mock inference (no model downloads), and calls:
      - `POST /internal/images/:id/processed`
   3. Backend updates `ImageLog` status (`SAFE|UNSAFE|ERROR`) and emits `image:processed`.
+
+- **Phase 4 status:** Completed (queue orchestration trigger).
+- **Phase 4 slice implemented:** `POST /uploads/complete` now requires `key`, verifies object existence in S3/MinIO via `HeadObject`, and enqueues the scan task to Redis (enqueue removed from `POST /uploads/presign`).
 
 ---
 

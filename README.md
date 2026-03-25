@@ -91,8 +91,24 @@ Response includes:
 - `uploadUrl` (presigned `PUT` URL, 5 min expiry)
 - `imageUrl` (final object URL)
 
+### Upload completion (enqueue scan)
+
+After the client successfully uploads the bytes to `uploadUrl`, call:
+
+```bash
+POST /uploads/complete
+```
+
+Request body:
+
+```json
+{
+  "imageId": "UUID-from-presign",
+  "key": "object-key-from-presign"
+}
+```
+
 ### AI worker skeleton (current)
-- Backend enqueues a scan task to Redis during `POST /uploads/presign`.
 - Worker consumes tasks and updates the DB by calling:
   - `POST /internal/images/:id/processed`
 - Worker also exposes:

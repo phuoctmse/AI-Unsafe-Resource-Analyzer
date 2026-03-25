@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { config } from "./config";
 import { setupSocketIO } from "./realtime";
 import { registerHealthRoutes } from "./routes/health";
-import { registerInternalImagesRoutes } from "./routes/internalImages";
+import { registerInternalImagesRoutes } from "./routes/internal-Images";
 import { registerUploadsRoutes } from "./routes/uploads";
 
 const app = new Hono();

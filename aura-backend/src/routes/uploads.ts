@@ -3,9 +3,11 @@ import type { Hono } from "hono";
 import { prisma } from "../db";
 import { headObjectExists, presignPutObject } from "../s3";
 import { enqueueScanTask } from "../queue";
+import { getRequestId, log } from "../logger";
 
 export const registerUploadsRoutes = (app: Hono) => {
   app.post("/uploads/presign", async (c) => {
+    const requestId = getRequestId(c.req.header("x-request-id"));
     try {
       const body = await c.req.json<{
         filename?: string;
@@ -18,6 +20,13 @@ export const registerUploadsRoutes = (app: Hono) => {
 
       const imageId = randomUUID();
       const key = `${imageId}/${body.filename}`;
+
+      log("info", "upload.presign.requested", {
+        requestId,
+        imageId,
+        key,
+        contentType: body.contentType,
+      });
 
       const { uploadUrl, imageUrl } = await presignPutObject({
         key,
@@ -32,6 +41,12 @@ export const registerUploadsRoutes = (app: Hono) => {
         },
       });
 
+      log("info", "upload.presign.created", {
+        requestId,
+        imageId,
+        key,
+      });
+
       return c.json({
         success: true,
         data: {
@@ -44,12 +59,13 @@ export const registerUploadsRoutes = (app: Hono) => {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("presign failed:", message);
+      log("error", "upload.presign.failed", { requestId, error: message });
       return c.json({ success: false, error: "presign_failed", details: message }, 500);
     }
   });
 
   app.post("/uploads/complete", async (c) => {
+    const requestId = getRequestId(c.req.header("x-request-id"));
     try {
       const body = await c.req.json<{
         imageId?: string;
@@ -61,17 +77,30 @@ export const registerUploadsRoutes = (app: Hono) => {
         return c.json({ success: false, error: "imageId and key are required" }, 400);
       }
 
+      log("info", "upload.complete.requested", {
+        requestId,
+        imageId: body.imageId,
+        key: body.key,
+        force: body.force === true,
+      });
+
       const image = await prisma.imageLog.findUnique({
         where: { id: body.imageId },
         select: { id: true, imageUrl: true, status: true },
       });
 
       if (!image) {
+        log("warn", "upload.complete.image_not_found", { requestId, imageId: body.imageId });
         return c.json({ success: false, error: "image not found" }, 404);
       }
 
       const shouldEnqueue = body.force === true ? true : image.status === "PENDING";
       if (!shouldEnqueue) {
+        log("info", "upload.complete.skipped", {
+          requestId,
+          imageId: image.id,
+          status: image.status,
+        });
         return c.json({
           success: true,
           data: { imageId: image.id, status: image.status, enqueued: false },
@@ -82,6 +111,11 @@ export const registerUploadsRoutes = (app: Hono) => {
       // Only enqueue once the object exists in storage (MinIO/S3).
       const exists = await headObjectExists(body.key);
       if (!exists) {
+        log("warn", "upload.complete.object_not_found", {
+          requestId,
+          imageId: image.id,
+          key: body.key,
+        });
         return c.json(
           { success: false, error: "object_not_found", details: "upload not yet available in storage" },
           409,
@@ -98,13 +132,19 @@ export const registerUploadsRoutes = (app: Hono) => {
 
       await enqueueScanTask(image.id, image.imageUrl);
 
+      log("info", "upload.complete.enqueued", {
+        requestId,
+        imageId: image.id,
+        queueKey: "aura:scanQueue",
+      });
+
       return c.json({
         success: true,
         data: { imageId: image.id, status: "PENDING", enqueued: true },
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error("uploads complete failed:", message);
+      log("error", "upload.complete.failed", { requestId, error: message });
       return c.json({ success: false, error: "uploads_complete_failed", details: message }, 500);
     }
   });

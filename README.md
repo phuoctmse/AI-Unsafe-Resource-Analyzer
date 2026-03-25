@@ -11,6 +11,7 @@
 * **Live Admin Dashboard:** A sleek, reactive interface to monitor incoming streams and alerts.
 * **Scalable Architecture:** Decoupled Node.js Gateway and Python AI Workers.
 * **Comprehensive Logging:** Detailed audit trails for every scanned resource.
+* **Observability-ready logs:** Backend/worker emit single-line JSON logs to stdout (Loki-friendly).
 
 ## 🏗️ Tech Stack
 
@@ -107,6 +108,10 @@ Request body:
   "key": "object-key-from-presign"
 }
 ```
+
+### Logs (for Loki/Grafana later)
+- The backend (`aura-backend`) and worker (`aura-ai-worker`) emit **single-line JSON logs** to stdout.
+- Presigned `uploadUrl` values are **not** logged (they contain signatures).
 
 ### AI worker skeleton (current)
 - Worker consumes tasks and updates the DB by calling:

@@ -2,9 +2,11 @@ import type { Hono } from "hono";
 import type { Server as SocketIOServer } from "socket.io";
 import { ScanStatus } from "@prisma/client";
 import { prisma } from "../db";
+import { getRequestId, log } from "../logger";
 
 export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
   app.post("/internal/images/:id/processed", async (c) => {
+    const requestId = getRequestId(c.req.header("x-request-id"));
     const imageId = c.req.param("id");
     const body = await c.req.json<{
       status?: string;
@@ -24,6 +26,13 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
     }
 
     try {
+      log("info", "worker.callback.received", {
+        requestId,
+        imageId,
+        status,
+        processedTimeMs: body.processedTimeMs ?? null,
+      });
+
       const updated = await prisma.imageLog.update({
         where: { id: imageId },
         data: {
@@ -35,11 +44,16 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
       });
 
       io.emit("image:processed", { success: true, data: updated });
+      log("info", "worker.callback.applied", {
+        requestId,
+        imageId,
+        status: updated.status,
+      });
       return c.json({ success: true, data: { imageId, status: updated.status } });
     } catch (err) {
       // Update throws when record doesn't exist.
       const message = err instanceof Error ? err.message : String(err);
-      console.error("processed callback failed:", message);
+      log("error", "worker.callback.failed", { requestId, imageId, error: message });
       return c.json({ success: false, error: "image not found" }, 404);
     }
   });

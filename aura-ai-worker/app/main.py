@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from .backend_client import post_processed_to_backend
 from .config import load_settings
+from .logger import log
 from .mock_inference import deterministic_mock_scores
 from .queue_consumer import consumer_loop
 from .schemas import AnalyzeRequest, ProcessedCallback
@@ -27,6 +28,7 @@ def _decide_status(
 
 async def analyze_and_callback(image_id: str, image_url: str) -> None:
     start = time.perf_counter()
+    log("info", "analyze.started", imageId=image_id)
     nsfw_score, violence_score = deterministic_mock_scores(image_url)
     status = _decide_status(nsfw_score, violence_score)
     processed_time_ms = int((time.perf_counter() - start) * 1000)
@@ -40,6 +42,13 @@ async def analyze_and_callback(image_id: str, image_url: str) -> None:
             violenceScore=violence_score,
             processedTimeMs=processed_time_ms,
         ),
+    )
+    log(
+        "info",
+        "analyze.completed",
+        imageId=image_id,
+        status=status,
+        processedTimeMs=processed_time_ms,
     )
 
 
@@ -59,12 +68,14 @@ async def analyze(req: AnalyzeRequest) -> dict:
 async def startup_event() -> None:
     global _redis_client, _consumer_task
 
+    log("info", "worker.startup.begin", redisUrl=_settings.redis_url, queueKey=_settings.scan_queue_key)
     _redis_client = redis.Redis.from_url(
         _settings.redis_url,
         decode_responses=True,
     )
     # Ensure connection is established.
     await _redis_client.ping()
+    log("info", "worker.startup.redis_ready")
 
     _consumer_task = asyncio.create_task(
         consumer_loop(
@@ -73,12 +84,14 @@ async def startup_event() -> None:
             analyze_and_callback=analyze_and_callback,
         ),
     )
+    log("info", "worker.startup.consumer_started")
 
 
 @app.on_event("shutdown")
 async def shutdown_event() -> None:
     global _redis_client, _consumer_task
 
+    log("info", "worker.shutdown.begin")
     if _consumer_task:
         _consumer_task.cancel()
         try:
@@ -89,4 +102,5 @@ async def shutdown_event() -> None:
     if _redis_client:
         await _redis_client.aclose()
         _redis_client = None
+    log("info", "worker.shutdown.complete")
 

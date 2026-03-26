@@ -28,7 +28,7 @@ export const registerUploadsRoutes = (app: Hono) => {
         contentType: body.contentType,
       });
 
-      const { uploadUrl, imageUrl } = await presignPutObject({
+      const { uploadUrl, imageUrl, objectKey } = await presignPutObject({
         key,
         contentType: body.contentType,
       });
@@ -37,6 +37,7 @@ export const registerUploadsRoutes = (app: Hono) => {
         data: {
           id: imageId,
           imageUrl,
+          objectKey,
           status: "PENDING",
         },
       });
@@ -86,12 +87,20 @@ export const registerUploadsRoutes = (app: Hono) => {
 
       const image = await prisma.imageLog.findUnique({
         where: { id: body.imageId },
-        select: { id: true, imageUrl: true, status: true },
+        select: { id: true, imageUrl: true, status: true, objectKey: true },
       });
 
       if (!image) {
         log("warn", "upload.complete.image_not_found", { requestId, imageId: body.imageId });
         return c.json({ success: false, error: "image not found" }, 404);
+      }
+
+      if (body.key !== image.objectKey) {
+        log("warn", "upload.complete.key_mismatch", {
+          requestId,
+          imageId: image.id,
+        });
+        return c.json({ success: false, error: "key_mismatch" }, 400);
       }
 
       const shouldEnqueue = body.force === true ? true : image.status === "PENDING";
@@ -109,12 +118,14 @@ export const registerUploadsRoutes = (app: Hono) => {
 
       // Real pipeline trigger:
       // Only enqueue once the object exists in storage (MinIO/S3).
-      const exists = await headObjectExists(body.key);
+      // Important: verify existence of the stored key, not the client-provided key.
+      // This prevents clients from bypassing the upload gate by submitting an arbitrary S3 key.
+      const exists = await headObjectExists(image.objectKey);
       if (!exists) {
         log("warn", "upload.complete.object_not_found", {
           requestId,
           imageId: image.id,
-          key: body.key,
+          key: image.objectKey,
         });
         return c.json(
           { success: false, error: "object_not_found", details: "upload not yet available in storage" },

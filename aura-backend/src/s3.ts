@@ -40,7 +40,7 @@ export const buildImageUrl = (key: string): string => {
 export const presignPutObject = async (params: {
   key: string;
   contentType: string;
-}): Promise<{ uploadUrl: string; imageUrl: string }> => {
+}): Promise<{ uploadUrl: string; imageUrl: string; objectKey: string }> => {
   await ensureBucket();
 
   const command = new PutObjectCommand({
@@ -52,7 +52,7 @@ export const presignPutObject = async (params: {
   const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
   const imageUrl = buildImageUrl(params.key);
 
-  return { uploadUrl, imageUrl };
+  return { uploadUrl, imageUrl, objectKey: params.key };
 };
 
 export const headObjectExists = async (key: string): Promise<boolean> => {

@@ -6,6 +6,7 @@
   "scripts": {
     "dev:frontend": "pnpm --filter aura-frontend dev",
     "dev:backend": "pnpm --filter aura-backend dev",
+    "dev:worker": "python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --app-dir aura-ai-worker",
     "build": "pnpm -r build"
   }
 }

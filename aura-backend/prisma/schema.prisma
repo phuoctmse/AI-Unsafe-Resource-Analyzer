@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ImageLog {
+  id              String     @id @default(uuid())
+  imageUrl        String
+  objectKey       String
+  status          ScanStatus @default(PENDING)
+  nsfwScore       Float?
+  violenceScore   Float?
+  processedTimeMs Int?
+  createdAt       DateTime   @default(now())
+}
+
+enum ScanStatus {
+  PENDING
+  SAFE
+  UNSAFE
+  ERROR
+}

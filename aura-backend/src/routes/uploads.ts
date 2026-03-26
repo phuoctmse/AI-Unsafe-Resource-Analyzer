@@ -4,6 +4,7 @@ import { prisma } from "../db";
 import { headObjectExists, presignPutObject } from "../s3";
 import { enqueueScanTask } from "../queue";
 import { getRequestId, log } from "../logger";
+import { config } from "../config";
 
 export const registerUploadsRoutes = (app: Hono) => {
   app.post("/uploads/presign", async (c) => {
@@ -146,7 +147,7 @@ export const registerUploadsRoutes = (app: Hono) => {
       log("info", "upload.complete.enqueued", {
         requestId,
         imageId: image.id,
-        queueKey: "aura:scanQueue",
+        queueKey: config.scanQueueKey,
       });
 
       return c.json({

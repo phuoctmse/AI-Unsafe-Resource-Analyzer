@@ -27,7 +27,11 @@ export const ensureBucket = async (): Promise<void> => {
     } catch {
       await s3Client.send(new CreateBucketCommand({ Bucket: config.s3Bucket }));
     }
-  })();
+  })().catch((e) => {
+    // Reliability: if bucket creation/check fails, don't cache the rejected promise forever.
+    bucketReadyPromise = undefined;
+    throw e;
+  });
 
   await bucketReadyPromise;
 };

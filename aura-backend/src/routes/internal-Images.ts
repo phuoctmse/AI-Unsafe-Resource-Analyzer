@@ -1,7 +1,7 @@
 import type { Hono } from "hono";
 import type { Server as SocketIOServer } from "socket.io";
 import { timingSafeEqual } from "node:crypto";
-import { ScanStatus } from "@prisma/client";
+import { ScanStatus, Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { getRequestId, log } from "../logger";
 import { config } from "../config";
@@ -75,10 +75,20 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
       });
       return c.json({ success: true, data: { imageId, status: updated.status } });
     } catch (err) {
-      // Update throws when record doesn't exist.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
+        log("warn", "worker.callback.imageNotFound", { requestId, imageId, code: err.code, meta: err.meta });
+        return c.json({ success: false, error: "image not found" }, 404);
+      }
+
+      if (err instanceof Prisma.PrismaClientValidationError) {
+        const message = err instanceof Error ? err.message : String(err);
+        log("warn", "worker.callback.invalidPayload", { requestId, imageId, error: message });
+        return c.json({ success: false, error: "invalid payload" }, 400);
+      }
+
       const message = err instanceof Error ? err.message : String(err);
       log("error", "worker.callback.failed", { requestId, imageId, error: message });
-      return c.json({ success: false, error: "image not found" }, 404);
+      return c.json({ success: false, error: "internal server error" }, 500);
     }
   });
 };

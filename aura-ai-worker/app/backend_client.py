@@ -1,3 +1,5 @@
+import os
+
 import httpx
 
 from .schemas import ProcessedCallback
@@ -10,9 +12,16 @@ async def post_processed_to_backend(
     payload: ProcessedCallback,
 ) -> None:
     url = f"{backend_url}/internal/images/{image_id}/processed"
+    internal_api_key = os.getenv("INTERNAL_API_KEY")
+    if not internal_api_key:
+        raise RuntimeError("INTERNAL_API_KEY is not configured")
     async with httpx.AsyncClient(timeout=10) as client:
         log("info", "backend.callback.sending", imageId=image_id)
-        resp = await client.post(url, json=payload.model_dump())
+        resp = await client.post(
+            url,
+            json=payload.model_dump(),
+            headers={"x-internal-key": internal_api_key},
+        )
         try:
             resp.raise_for_status()
         except Exception as e:

@@ -7,6 +7,7 @@ export type AppConfig = {
   s3SecretKey: string;
   redisUrl: string;
   scanQueueKey: string;
+  internalApiKey: string;
 };
 
 export const config: AppConfig = {
@@ -18,5 +19,6 @@ export const config: AppConfig = {
   s3SecretKey: process.env.S3_SECRET_KEY ?? "aurasecret",
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
   scanQueueKey: process.env.SCAN_QUEUE_KEY ?? "aura:scanQueue",
+  internalApiKey: process.env.INTERNAL_API_KEY ?? "aura-internal-api-key",
 };
 

@@ -1,12 +1,36 @@
 import type { Hono } from "hono";
 import type { Server as SocketIOServer } from "socket.io";
+import { timingSafeEqual } from "node:crypto";
 import { ScanStatus } from "@prisma/client";
 import { prisma } from "../db";
 import { getRequestId, log } from "../logger";
+import { config } from "../config";
 
 export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
   app.post("/internal/images/:id/processed", async (c) => {
     const requestId = getRequestId(c.req.header("x-request-id"));
+    const expectedInternalKey = config.internalApiKey.trim();
+    const providedInternalKey = c.req.header("x-internal-key")?.trim();
+
+    if (!expectedInternalKey) {
+      log("error", "worker.callback.unauthorized.internalKeyNotConfigured", { requestId });
+      return c.json({ success: false, error: "internal server misconfigured" }, 500);
+    }
+
+    if (!providedInternalKey) {
+      log("warn", "worker.callback.unauthorized.missingInternalKey", { requestId });
+      return c.json({ success: false, error: "missing x-internal-key" }, 401);
+    }
+
+    const providedBuf = Buffer.from(providedInternalKey);
+    const expectedBuf = Buffer.from(expectedInternalKey);
+    const isValid = providedBuf.length === expectedBuf.length && timingSafeEqual(providedBuf, expectedBuf);
+
+    if (!isValid) {
+      log("warn", "worker.callback.unauthorized.invalidInternalKey", { requestId });
+      return c.json({ success: false, error: "invalid x-internal-key" }, 403);
+    }
+
     const imageId = c.req.param("id");
     const body = await c.req.json<{
       status?: string;

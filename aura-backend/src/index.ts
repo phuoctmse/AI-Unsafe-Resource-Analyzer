@@ -11,14 +11,17 @@ import { registerUploadsRoutes } from "./routes/uploads";
 
 const app = new Hono();
 
-app.use(
-  "*",
-  cors({
-    origin: "*",
-    allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "x-request-id", "x-internal-key"],
-  }),
-);
+const dashboardCors = cors({
+  origin: (origin) => {
+    if (!origin) return null;
+    return config.dashboardCorsOrigins.includes(origin) ? origin : null;
+  },
+  allowMethods: ["GET", "POST", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "x-request-id", "x-internal-key"],
+});
+
+app.use("/uploads/*", dashboardCors);
+app.use("/images", dashboardCors);
 
 const httpServer = serve({
   fetch: app.fetch,

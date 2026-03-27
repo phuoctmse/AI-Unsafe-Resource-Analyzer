@@ -62,6 +62,10 @@ python -m pip install -r requirements.txt
 docker compose up -d
 ```
 
+### Trusted dashboard origins
+
+Set `DASHBOARD_CORS_ORIGINS` on `aura-backend` to a comma-separated list of dashboard origins allowed to read browser-facing API responses. If unset, the backend defaults to `http://localhost:3000` for local development.
+
 ### Prisma setup
 
 ```bash

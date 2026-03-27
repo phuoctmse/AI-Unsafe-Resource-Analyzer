@@ -52,7 +52,7 @@
 - [x] **Phase 2: Database & Storage** - Prisma migration applied, PostgreSQL/Redis/MinIO wired in Docker Compose, and backend presigned upload endpoint implemented.
 - [x] **Phase 3: AI Inference Worker** - Implement Redis task consumer skeleton with deterministic mock inference and backend processed callback update.
 - [x] **Phase 4: Real-time Gateway** - Implement Hono API, Socket.io, and Redis Queue integration (upload completion -> Redis scan orchestration).
-- [ ] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
+- [x] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
 - [ ] **Phase 6: DevOps & Security** - Setup GitHub Actions, Trivy scan, and Rate limiting.
 
 ## 12. Task Tracking Policy

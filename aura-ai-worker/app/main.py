@@ -4,6 +4,7 @@ from typing import Literal
 
 import redis.asyncio as redis
 from fastapi import FastAPI
+from dotenv import load_dotenv
 
 from .backend_client import post_processed_to_backend
 from .config import load_settings
@@ -11,6 +12,8 @@ from .logger import log
 from .mock_inference import deterministic_mock_scores
 from .queue_consumer import consumer_loop
 from .schemas import AnalyzeRequest, ProcessedCallback
+
+load_dotenv()
 
 app = FastAPI(title="Aura AI Worker")
 

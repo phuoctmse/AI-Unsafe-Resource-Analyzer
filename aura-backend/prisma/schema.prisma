@@ -10,7 +10,7 @@ datasource db {
 model ImageLog {
   id              String     @id @default(uuid())
   imageUrl        String
-  objectKey       String
+  objectKey       String?
   status          ScanStatus @default(PENDING)
   nsfwScore       Float?
   violenceScore   Float?

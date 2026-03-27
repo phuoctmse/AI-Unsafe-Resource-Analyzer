@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from .backend_client import post_processed_to_backend
 from .config import load_settings
+from .labeling import top_k_labels
 from .logger import log
 from .mock_inference import deterministic_mock_scores
 from .queue_consumer import consumer_loop
@@ -33,6 +34,10 @@ async def analyze_and_callback(image_id: str, image_url: str) -> None:
     start = time.perf_counter()
     log("info", "analyze.started", imageId=image_id)
     nsfw_score, violence_score = deterministic_mock_scores(image_url)
+    raw_scores = {
+        "nsfw": nsfw_score,
+        "violence": violence_score,
+    }
     status = _decide_status(nsfw_score, violence_score)
     processed_time_ms = int((time.perf_counter() - start) * 1000)
 
@@ -43,6 +48,7 @@ async def analyze_and_callback(image_id: str, image_url: str) -> None:
             status=status,
             nsfwScore=nsfw_score,
             violenceScore=violence_score,
+            topLabels=top_k_labels(raw_scores, k=3),
             processedTimeMs=processed_time_ms,
         ),
     )

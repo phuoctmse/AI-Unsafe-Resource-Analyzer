@@ -36,6 +36,7 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
       status?: string;
       nsfwScore?: number | null;
       violenceScore?: number | null;
+      topLabels?: unknown;
       processedTimeMs?: number | null;
     }>();
 
@@ -63,6 +64,7 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
           status: status as ScanStatus,
           nsfwScore: body.nsfwScore ?? null,
           violenceScore: body.violenceScore ?? null,
+          topLabels: body.topLabels === undefined ? undefined : (body.topLabels as object),
           processedTimeMs: body.processedTimeMs ?? null,
         },
       });

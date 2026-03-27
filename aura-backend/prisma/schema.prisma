@@ -14,6 +14,7 @@ model ImageLog {
   status          ScanStatus @default(PENDING)
   nsfwScore       Float?
   violenceScore   Float?
+  topLabels       Json?
   processedTimeMs Int?
   createdAt       DateTime   @default(now())
 }

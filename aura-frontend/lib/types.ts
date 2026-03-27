@@ -1,11 +1,17 @@
 export type ScanStatus = "PENDING" | "SAFE" | "UNSAFE" | "ERROR";
 
+export type TopLabel = {
+  label: string;
+  score: number;
+};
+
 export type ImageLog = {
   id: string;
   imageUrl: string;
   status: ScanStatus;
   nsfwScore: number | null;
   violenceScore: number | null;
+  topLabels?: TopLabel[] | null;
   processedTimeMs: number | null;
   createdAt: string;
   objectKey?: string;

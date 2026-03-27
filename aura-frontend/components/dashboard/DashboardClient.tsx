@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { AlertTriangle, CheckCircle2, Clock, RefreshCcw, ShieldAlert } from "lucide-react";
 
-import type { ApiResponse, ImageLog, ScanStatus } from "@/lib/types";
+import type { ApiResponse, ImageLog, ScanStatus, TopLabel } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +54,19 @@ const isImageLog = (value: unknown): value is ImageLog => {
   );
 };
 
+const normalizeTopLabels = (value: unknown): TopLabel[] | null => {
+  if (!Array.isArray(value)) return null;
+  const labels: TopLabel[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Record<string, unknown>;
+    if (typeof r.label !== "string") continue;
+    if (typeof r.score !== "number" || !Number.isFinite(r.score)) continue;
+    labels.push({ label: r.label, score: r.score });
+  }
+  return labels.length ? labels.slice(0, 3) : null;
+};
+
 export const DashboardClient = () => {
   const [images, setImages] = useState<ImageLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -78,6 +91,7 @@ export const DashboardClient = () => {
           json.data.map((img) => ({
             ...img,
             createdAt: typeof img.createdAt === "string" ? img.createdAt : new Date(img.createdAt).toISOString(),
+            topLabels: normalizeTopLabels((img as unknown as Record<string, unknown>).topLabels),
           })),
         );
         setError(null);
@@ -122,6 +136,7 @@ export const DashboardClient = () => {
         upsertByIdDesc(prev, {
           ...data,
           createdAt: data.createdAt,
+          topLabels: normalizeTopLabels((data as unknown as Record<string, unknown>).topLabels),
         }),
       );
     });
@@ -180,10 +195,21 @@ export const DashboardClient = () => {
                 return (
                   <tr key={img.id} className="border-t border-white/10 text-sm">
                     <td className="px-2 py-3">
-                      <Badge variant={meta.badge}>
-                        <Icon className="h-3.5 w-3.5" />
-                        {meta.label}
-                      </Badge>
+                      <div className="flex flex-col gap-2">
+                        <Badge variant={meta.badge}>
+                          <Icon className="h-3.5 w-3.5" />
+                          {meta.label}
+                        </Badge>
+                        {img.topLabels && img.topLabels.length ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {img.topLabels.slice(0, 3).map((l) => (
+                              <Badge key={l.label} variant="muted" className="font-mono">
+                                {l.label} {l.score.toFixed(2)}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-2 py-3">
                       <div className="flex flex-col gap-1">

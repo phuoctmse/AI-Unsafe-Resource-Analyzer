@@ -57,14 +57,21 @@ const isImageLog = (value: unknown): value is ImageLog => {
 export const DashboardClient = () => {
   const [images, setImages] = useState<ImageLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [socketState, setSocketState] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const backendUrl = useMemo(() => getBackendUrl(), []);
   const socketUrl = useMemo(() => getSocketUrl(), []);
 
   const refresh = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${backendUrl}/images?limit=50`, { cache: "no-store" });
+      if (!res.ok) {
+        setError(`Network error: ${res.status} ${res.statusText}`);
+        return;
+      }
+
       const json = (await res.json()) as ApiResponse<ImageLog[]>;
       if (json.success) {
         setImages(
@@ -73,7 +80,15 @@ export const DashboardClient = () => {
             createdAt: typeof img.createdAt === "string" ? img.createdAt : new Date(img.createdAt).toISOString(),
           })),
         );
+        setError(null);
+      } else {
+        setError("Failed to load images");
       }
+    } catch (err) {
+      // swallow and log to avoid unhandled promise rejection noise
+      // eslint-disable-next-line no-console
+      console.error("Failed to refresh images", err);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -130,6 +145,11 @@ export const DashboardClient = () => {
           <Badge variant={socketState === "connected" ? "success" : socketState === "connecting" ? "muted" : "warning"}>
             {socketState}
           </Badge>
+          {error ? (
+            <Badge variant="danger" className="max-w-xs truncate">
+              {error}
+            </Badge>
+          ) : null}
           <Button variant="outline" onClick={refresh} disabled={loading}>
             <RefreshCcw className="h-4 w-4" />
             Refresh

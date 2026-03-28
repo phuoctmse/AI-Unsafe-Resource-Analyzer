@@ -37,6 +37,12 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
       nsfwScore?: number | null;
       violenceScore?: number | null;
       topLabels?: unknown;
+      reasonShort?: string | null;
+      modelVersion?: string | null;
+      labelSetVersion?: string | null;
+      thresholdsVersion?: string | null;
+      scoresFull?: unknown;
+      workerVersion?: string | null;
       processedTimeMs?: number | null;
     }>();
 
@@ -65,6 +71,13 @@ export const registerInternalImagesRoutes = (app: Hono, io: SocketIOServer) => {
           nsfwScore: body.nsfwScore ?? null,
           violenceScore: body.violenceScore ?? null,
           topLabels: body.topLabels === undefined ? undefined : (body.topLabels as object),
+          reasonShort: body.reasonShort === undefined ? undefined : body.reasonShort,
+          modelVersion: body.modelVersion === undefined ? undefined : body.modelVersion,
+          labelSetVersion: body.labelSetVersion === undefined ? undefined : body.labelSetVersion,
+          thresholdsVersion: body.thresholdsVersion === undefined ? undefined : body.thresholdsVersion,
+          scoresFull:
+            body.scoresFull === undefined ? undefined : (body.scoresFull as Prisma.InputJsonValue),
+          workerVersion: body.workerVersion === undefined ? undefined : body.workerVersion,
           processedTimeMs: body.processedTimeMs ?? null,
         },
       });

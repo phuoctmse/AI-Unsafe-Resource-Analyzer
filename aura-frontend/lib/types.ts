@@ -12,6 +12,12 @@ export type ImageLog = {
   nsfwScore: number | null;
   violenceScore: number | null;
   topLabels?: TopLabel[] | null;
+  reasonShort?: string | null;
+  modelVersion?: string | null;
+  labelSetVersion?: string | null;
+  thresholdsVersion?: string | null;
+  scoresFull?: Record<string, number> | null;
+  workerVersion?: string | null;
   processedTimeMs: number | null;
   createdAt: string;
   objectKey?: string;

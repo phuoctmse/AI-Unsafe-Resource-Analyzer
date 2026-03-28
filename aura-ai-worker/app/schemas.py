@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class AnalyzeRequest(BaseModel):
     imageId: str
     imageUrl: str
+    objectKey: str = ""
 
 
 class TopLabel(BaseModel):
@@ -18,5 +19,11 @@ class ProcessedCallback(BaseModel):
     nsfwScore: float | None = None
     violenceScore: float | None = None
     topLabels: list[TopLabel] | None = None
+    reasonShort: str | None = None
+    modelVersion: str | None = None
+    labelSetVersion: str | None = None
+    thresholdsVersion: str | None = None
+    scoresFull: dict[str, float] | None = None
+    workerVersion: str | None = None
     processedTimeMs: int | None = None
 

@@ -5,11 +5,15 @@ import { log } from "./logger";
 
 export const redis = new Redis(config.redisUrl, { lazyConnect: true });
 
-export const enqueueScanTask = async (imageId: string, imageUrl: string): Promise<void> => {
+export const enqueueScanTask = async (
+  imageId: string,
+  imageUrl: string,
+  objectKey: string,
+): Promise<void> => {
   // ioredis will auto-connect on first command with lazyConnect=true
   await redis.rpush(
     config.scanQueueKey,
-    JSON.stringify({ imageId, imageUrl }),
+    JSON.stringify({ imageId, imageUrl, objectKey }),
   );
 
   log("info", "queue.enqueued", {

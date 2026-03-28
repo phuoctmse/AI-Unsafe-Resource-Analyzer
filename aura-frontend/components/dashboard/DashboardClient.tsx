@@ -183,6 +183,7 @@ export const DashboardClient = () => {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-2 py-2">Status</th>
                 <th className="px-2 py-2">Image</th>
+                <th className="px-2 py-2">Reason</th>
                 <th className="px-2 py-2">Scores</th>
                 <th className="px-2 py-2">Processed</th>
                 <th className="px-2 py-2">Created</th>
@@ -224,6 +225,15 @@ export const DashboardClient = () => {
                         </a>
                       </div>
                     </td>
+                    <td className="max-w-[220px] px-2 py-3 text-xs leading-snug text-slate-300">
+                      <div className="line-clamp-3">{img.reasonShort ?? "—"}</div>
+                      {img.modelVersion ? (
+                        <div className="mt-1 font-mono text-[10px] text-slate-500">
+                          {img.modelVersion}
+                          {img.thresholdsVersion ? ` · ${img.thresholdsVersion}` : ""}
+                        </div>
+                      ) : null}
+                    </td>
                     <td className="px-2 py-3 text-xs text-slate-300">
                       <div className="flex flex-col gap-1">
                         <div>nsfw: {img.nsfwScore ?? "—"}</div>
@@ -242,7 +252,7 @@ export const DashboardClient = () => {
 
               {!loading && images.length === 0 ? (
                 <tr>
-                  <td className="px-2 py-10 text-center text-sm text-slate-400" colSpan={5}>
+                  <td className="px-2 py-10 text-center text-sm text-slate-400" colSpan={6}>
                     No images yet. Upload one and call <span className="font-mono">/uploads/complete</span> to enqueue.
                   </td>
                 </tr>

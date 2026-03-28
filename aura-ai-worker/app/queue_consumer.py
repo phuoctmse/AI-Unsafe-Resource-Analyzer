@@ -11,7 +11,7 @@ from .logger import log
 async def consumer_loop(
     redis_client: redis.Redis,
     settings: Settings,
-    analyze_and_callback: Callable[[str, str], Awaitable[None]],
+    analyze_and_callback: Callable[[str, str, str], Awaitable[None]],
 ) -> None:
     while True:
         # BLPOP blocks until an item is available.
@@ -24,8 +24,9 @@ async def consumer_loop(
             payload = json.loads(raw_value)
             image_id = payload["imageId"]
             image_url = payload["imageUrl"]
+            object_key = payload.get("objectKey") or ""
             log("info", "queue.dequeued", imageId=image_id, queueKey=settings.scan_queue_key)
-            await analyze_and_callback(image_id, image_url)
+            await analyze_and_callback(image_id, image_url, object_key)
         except asyncio.CancelledError:
             raise
         except Exception as e:

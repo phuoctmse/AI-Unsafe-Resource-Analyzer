@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Hono } from "hono";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db";
 import { headObjectExists, presignPutObject } from "../s3";
 import { enqueueScanTask } from "../queue";
@@ -138,11 +139,23 @@ export const registerUploadsRoutes = (app: Hono) => {
       if (body.force === true || image.status !== "PENDING") {
         await prisma.imageLog.update({
           where: { id: image.id },
-          data: { status: "PENDING", nsfwScore: null, violenceScore: null, processedTimeMs: null },
+          data: {
+            status: "PENDING",
+            nsfwScore: null,
+            violenceScore: null,
+            topLabels: Prisma.DbNull,
+            reasonShort: null,
+            modelVersion: null,
+            labelSetVersion: null,
+            thresholdsVersion: null,
+            scoresFull: Prisma.DbNull,
+            workerVersion: null,
+            processedTimeMs: null,
+          },
         });
       }
 
-      await enqueueScanTask(image.id, image.imageUrl);
+      await enqueueScanTask(image.id, image.imageUrl, image.objectKey);
 
       log("info", "upload.complete.enqueued", {
         requestId,

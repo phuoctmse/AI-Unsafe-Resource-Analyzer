@@ -8,15 +8,21 @@ datasource db {
 }
 
 model ImageLog {
-  id              String     @id @default(uuid())
-  imageUrl        String
-  objectKey       String
-  status          ScanStatus @default(PENDING)
-  nsfwScore       Float?
-  violenceScore   Float?
-  topLabels       Json?
-  processedTimeMs Int?
-  createdAt       DateTime   @default(now())
+  id                 String     @id @default(uuid())
+  imageUrl           String
+  objectKey          String
+  status             ScanStatus @default(PENDING)
+  nsfwScore          Float?
+  violenceScore      Float?
+  topLabels          Json?
+  reasonShort        String?
+  modelVersion       String?
+  labelSetVersion    String?
+  thresholdsVersion  String?
+  scoresFull         Json?
+  workerVersion      String?
+  processedTimeMs    Int?
+  createdAt          DateTime   @default(now())
 }
 
 enum ScanStatus {

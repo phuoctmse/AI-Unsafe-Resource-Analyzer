@@ -8,9 +8,13 @@ from dotenv import load_dotenv
 
 from .backend_client import post_processed_to_backend
 from .config import load_settings
-from .labeling import top_k_labels
+from .labeling import build_reason_short, top_k_labels
 from .logger import log
-from .mock_inference import deterministic_mock_scores
+from .mock_inference import (
+    aggregate_nsfw_violence,
+    deterministic_label_scores,
+    max_unsafe_score,
+)
 from .queue_consumer import consumer_loop
 from .schemas import AnalyzeRequest, ProcessedCallback
 
@@ -23,22 +27,24 @@ _redis_client: redis.Redis | None = None
 _consumer_task: asyncio.Task[None] | None = None
 
 
-def _decide_status(
-    nsfw_score: float,
-    violence_score: float,
-) -> Literal["SAFE", "UNSAFE", "ERROR"]:
-    return "UNSAFE" if max(nsfw_score, violence_score) > 0.6 else "SAFE"
+def _decide_status(scores: dict[str, float], threshold: float) -> Literal["SAFE", "UNSAFE", "ERROR"]:
+    return "UNSAFE" if max_unsafe_score(scores) >= threshold else "SAFE"
 
 
-async def analyze_and_callback(image_id: str, image_url: str) -> None:
+async def analyze_and_callback(image_id: str, image_url: str, object_key: str) -> None:
     start = time.perf_counter()
-    log("info", "analyze.started", imageId=image_id)
-    nsfw_score, violence_score = deterministic_mock_scores(image_url)
-    raw_scores = {
-        "nsfw": nsfw_score,
-        "violence": violence_score,
-    }
-    status = _decide_status(nsfw_score, violence_score)
+    log(
+        "info",
+        "analyze.started",
+        imageId=image_id,
+        objectKeyPresent=bool(object_key),
+    )
+    # Seed ties mock scores to the stored URL; real inference will fetch by object_key from S3/MinIO.
+    raw_scores = deterministic_label_scores(image_url)
+    nsfw_score, violence_score = aggregate_nsfw_violence(raw_scores)
+    status = _decide_status(raw_scores, _settings.unsafe_threshold)
+    top = top_k_labels(raw_scores, k=3)
+    reason = build_reason_short(top, status)
     processed_time_ms = int((time.perf_counter() - start) * 1000)
 
     await post_processed_to_backend(
@@ -48,7 +54,13 @@ async def analyze_and_callback(image_id: str, image_url: str) -> None:
             status=status,
             nsfwScore=nsfw_score,
             violenceScore=violence_score,
-            topLabels=top_k_labels(raw_scores, k=3),
+            topLabels=top,
+            reasonShort=reason,
+            modelVersion=_settings.model_version,
+            labelSetVersion=_settings.label_set_version,
+            thresholdsVersion=_settings.thresholds_version,
+            scoresFull=raw_scores,
+            workerVersion=_settings.worker_version,
             processedTimeMs=processed_time_ms,
         ),
     )
@@ -69,7 +81,7 @@ async def health() -> dict:
 @app.post("/analyze")
 async def analyze(req: AnalyzeRequest) -> dict:
     # Synchronous-style API for manual smoke testing.
-    await analyze_and_callback(req.imageId, req.imageUrl)
+    await analyze_and_callback(req.imageId, req.imageUrl, req.objectKey)
     return {"success": True, "data": {"imageId": req.imageId}}
 
 

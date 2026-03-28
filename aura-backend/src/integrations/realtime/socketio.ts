@@ -1,7 +1,7 @@
 import type { Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
 
-import { config } from "./config";
+import { config } from "../../config";
 
 export const setupSocketIO = (httpServer: unknown): SocketIOServer => {
   // `@hono/node-server` types can be narrower/different than Socket.io's expected http.Server type.
@@ -18,4 +18,3 @@ export const setupSocketIO = (httpServer: unknown): SocketIOServer => {
 
   return io;
 };
-

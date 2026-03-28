@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 
-import { config } from "./config";
-import { log } from "./logger";
+import { config } from "../../config";
+import { log } from "../../observability/logger";
 
 export const redis = new Redis(config.redisUrl, { lazyConnect: true });
 
@@ -21,4 +21,3 @@ export const enqueueScanTask = async (
     queueKey: config.scanQueueKey,
   });
 };
-

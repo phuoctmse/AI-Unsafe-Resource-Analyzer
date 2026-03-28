@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { config } from "./config";
-import { setupSocketIO } from "./realtime";
+import { setupSocketIO } from "./integrations/realtime/socketio";
 import { registerHealthRoutes } from "./routes/health";
 import { registerInternalImagesRoutes } from "./routes/internal-Images";
 import { registerImagesRoutes } from "./routes/images";

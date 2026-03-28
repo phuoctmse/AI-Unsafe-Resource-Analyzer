@@ -1,3 +1,5 @@
+import { log } from "../observability/logger";
+
 export type AppConfig = {
   backendPort: number;
   dashboardCorsOrigins: string[];
@@ -10,8 +12,6 @@ export type AppConfig = {
   scanQueueKey: string;
   internalApiKey: string;
 };
-
-import { log } from "./logger";
 
 const DEFAULT_BACKEND_PORT = 3001;
 
@@ -63,4 +63,3 @@ export const config: AppConfig = {
   scanQueueKey: process.env.SCAN_QUEUE_KEY ?? "aura:scanQueue",
   internalApiKey: process.env.INTERNAL_API_KEY ?? "aura-internal-api-key",
 };
-

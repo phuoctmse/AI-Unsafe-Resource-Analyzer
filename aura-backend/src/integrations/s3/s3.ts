@@ -1,7 +1,7 @@
 import { S3Client, CreateBucketCommand, HeadBucketCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { config } from "./config";
+import { config } from "../../config";
 
 export const s3Client = new S3Client({
   region: config.s3Region,
@@ -68,4 +68,3 @@ export const headObjectExists = async (key: string): Promise<boolean> => {
     return false;
   }
 };
-

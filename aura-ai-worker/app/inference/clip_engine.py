@@ -5,7 +5,7 @@ import torch
 from PIL import Image
 
 from .labels import CLIP_TEXT_PROMPTS, LABEL_ORDER
-from .logger import log
+from ..logger import log
 
 if TYPE_CHECKING:
     from transformers import CLIPModel, CLIPProcessor

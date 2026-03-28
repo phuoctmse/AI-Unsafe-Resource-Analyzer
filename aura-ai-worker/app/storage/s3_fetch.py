@@ -1,11 +1,10 @@
-import io
 from typing import Any
 
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
 
-from .logger import log
+from ..logger import log
 
 
 def _client(endpoint: str, region: str, access_key: str, secret_key: str) -> Any:

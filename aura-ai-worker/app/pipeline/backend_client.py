@@ -3,8 +3,8 @@ import os
 
 import httpx
 
-from .schemas import ProcessedCallback
-from .logger import log
+from ..schemas import ProcessedCallback
+from ..logger import log
 
 
 async def post_processed_to_backend(

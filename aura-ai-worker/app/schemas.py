@@ -9,6 +9,12 @@ class AnalyzeRequest(BaseModel):
     objectKey: str = ""
 
 
+class ScanTask(BaseModel):
+    imageId: str
+    imageUrl: str
+    objectKey: str = ""
+
+
 class TopLabel(BaseModel):
     label: str
     score: float

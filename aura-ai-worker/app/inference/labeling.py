@@ -37,4 +37,3 @@ def build_reason_short(
     if len(top) == 2:
         return f"Highest signal: {label} ({pct}); also {top[1]['label']}."
     return f"Highest signal: {label} ({pct})."
-

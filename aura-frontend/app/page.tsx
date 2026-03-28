@@ -1,7 +1,7 @@
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
+import { ModerationDashboard } from "@/features/moderation";
 
 const HomePage = () => {
-  return <DashboardClient />;
+  return <ModerationDashboard />;
 };
 
 export default HomePage;

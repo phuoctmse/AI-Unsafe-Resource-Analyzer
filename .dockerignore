@@ -1,0 +1,26 @@
+# Smaller build context = faster uploads and fewer irrelevant invalidations.
+# https://docs.docker.com/build/building/best-practices/#exclude-with-dockerignore
+
+node_modules
+**/node_modules
+**/.next
+**/dist
+.git
+.github
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.venv
+**/venv
+.env
+.env.*
+!.env.example
+*.md
+specs
+terminals
+.cursor
+**/*.tsbuildinfo
+**/.DS_Store
+**/coverage
+**/.nyc_output
+**/*.log

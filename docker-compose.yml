@@ -6,9 +6,9 @@ services:
     container_name: aura-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: aura
-      POSTGRES_USER: aura
-      POSTGRES_PASSWORD: aura
+      POSTGRES_DB: ${POSTGRES_DB:-aura}
+      POSTGRES_USER: ${POSTGRES_USER:-aura}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
@@ -39,8 +39,8 @@ services:
     container_name: aura-minio
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: aura
-      MINIO_ROOT_PASSWORD: aurasecret
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-aura}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
@@ -68,15 +68,16 @@ services:
       retries: 5
       start_period: 45s
     environment:
-      DATABASE_URL: postgresql://aura:aura@postgres:5432/aura?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aura}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aura}?schema=public
       BACKEND_PORT: "3001"
       REDIS_URL: redis://redis:6379
       SCAN_QUEUE_KEY: aura:scanQueue
       S3_ENDPOINT: http://minio:9000
       S3_REGION: us-east-1
-      S3_ACCESS_KEY: aura
-      S3_SECRET_KEY: aurasecret
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: aura-images
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-aura-internal-api-key}
       DASHBOARD_CORS_ORIGINS: ${DASHBOARD_CORS_ORIGINS:-http://localhost:3000}
     depends_on:
@@ -117,15 +118,18 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-aura-internal-api-key}
       S3_ENDPOINT: http://minio:9000
       S3_REGION: us-east-1
-      S3_ACCESS_KEY: aura
-      S3_SECRET_KEY: aurasecret
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: aura-images
-      USE_MOCK_INFERENCE: ${USE_MOCK_INFERENCE:-true}
+      USE_MOCK_INFERENCE: ${USE_MOCK_INFERENCE:-false}
       MODEL_VERSION: ${MODEL_VERSION:-openai/clip-vit-base-patch32}
       CLIP_MODEL_ID: ${CLIP_MODEL_ID:-openai/clip-vit-base-patch32}
       WORKER_VERSION: ${WORKER_VERSION:-docker}
+      UNSAFE_THRESHOLD: ${UNSAFE_THRESHOLD:-0.55}
+      CLIP_SCORE_SCALE: ${CLIP_SCORE_SCALE:-10.0}
+      HF_TOKEN: ${HF_TOKEN:-}
     volumes:
-      - hf_cache:/root/.cache/huggingface
+      - hf_cache:/app/model-cache
     depends_on:
       redis:
         condition: service_healthy

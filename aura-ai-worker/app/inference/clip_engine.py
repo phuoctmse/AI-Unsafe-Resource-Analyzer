@@ -35,7 +35,7 @@ def load_clip(model_id: str) -> None:
     _model.eval()
     _model.to(_device)
 
-    # Warm-up (small random image)
+    # Warm-up pass
     with torch.no_grad():
         dummy = Image.new("RGB", (224, 224), color=(128, 128, 128))
         inputs = _processor(text=list(CLIP_TEXT_PROMPTS), images=dummy, return_tensors="pt", padding=True)
@@ -46,22 +46,57 @@ def load_clip(model_id: str) -> None:
 
 
 def run_clip_scores(image: Image.Image) -> dict[str, float]:
+    """
+    Returns per-label scores using independent binary contrast scoring.
+
+    For each label we compute:
+        score = cosine_sim(image, unsafe_prompt) - cosine_sim(image, safe_prompt)
+    then map to [0, 1] via sigmoid.
+
+    This avoids the softmax competition problem where safe_neutral always wins
+    because it is the most generic prompt in the label set.
+    """
     if _model is None or _processor is None or _device is None:
         raise RuntimeError("CLIP model not loaded")
 
+    # Build paired prompts: [unsafe_prompt, safe_anchor] for each label
+    unsafe_prompts = list(CLIP_TEXT_PROMPTS)
+    safe_anchor = "a safe, ordinary, everyday photograph with no harmful content"
+
+    all_texts = unsafe_prompts + [safe_anchor]
+
     with torch.no_grad():
         inputs = _processor(
-            text=list(CLIP_TEXT_PROMPTS),
+            text=all_texts,
             images=image,
             return_tensors="pt",
             padding=True,
         )
         inputs = {k: v.to(_device) if hasattr(v, "to") else v for k, v in inputs.items()}
         outputs = _model(**inputs)
-        logits = outputs.logits_per_image[0]
-        probs = logits.softmax(dim=-1).cpu().tolist()
 
-    if len(probs) != len(LABEL_ORDER):
+        # image_embeds: (1, D), text_embeds: (N, D)
+        image_embeds = outputs.image_embeds  # (1, D)
+        text_embeds = outputs.text_embeds    # (N+1, D)
+
+        # Normalize
+        image_norm = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+        text_norm = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
+
+        # Cosine similarities: (N+1,)
+        sims = (image_norm @ text_norm.T).squeeze(0)
+
+        unsafe_sims = sims[:len(LABEL_ORDER)]   # one per label
+        safe_sim = sims[len(LABEL_ORDER)]        # safe anchor
+
+        # Score = how much more the image matches this label vs the safe anchor
+        # sigmoid maps (-inf, +inf) → (0, 1)
+        # Multiply by scale factor to spread the sigmoid curve
+        scale = float(os.getenv("CLIP_SCORE_SCALE", "10.0"))
+        deltas = (unsafe_sims - safe_sim) * scale
+        scores = torch.sigmoid(deltas).cpu().tolist()
+
+    if len(scores) != len(LABEL_ORDER):
         raise RuntimeError("label count mismatch")
 
-    return {LABEL_ORDER[i]: float(probs[i]) for i in range(len(LABEL_ORDER))}
+    return {LABEL_ORDER[i]: float(scores[i]) for i in range(len(LABEL_ORDER))}

@@ -10,7 +10,8 @@ from ..config import Settings
 from ..storage.image_io import decode_pil_rgb, fetch_image_bytes_http
 from ..inference.labeling import build_reason_short, top_k_labels
 from ..logger import log
-from ..inference.mock_inference import aggregate_nsfw_violence, deterministic_label_scores, max_unsafe_score
+from ..inference.mock_inference import deterministic_label_scores
+from ..inference.scoring import aggregate_nsfw_violence, max_unsafe_score
 from ..storage.s3_fetch import fetch_object_bytes
 from ..schemas import ProcessedCallback
 

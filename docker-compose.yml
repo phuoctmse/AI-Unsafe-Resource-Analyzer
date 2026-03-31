@@ -109,8 +109,6 @@ services:
       dockerfile: aura-ai-worker/Dockerfile
     container_name: aura-worker
     restart: unless-stopped
-    ports:
-      - "8001:8001"
     environment:
       REDIS_URL: redis://redis:6379
       SCAN_QUEUE_KEY: aura:scanQueue

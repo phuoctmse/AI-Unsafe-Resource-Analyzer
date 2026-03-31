@@ -1,7 +1,7 @@
 import asyncio
 
 import redis.asyncio as redis
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException, status
 from dotenv import load_dotenv
 
 from .inference.clip_engine import is_loaded, load_clip
@@ -38,7 +38,16 @@ async def health() -> dict:
 
 
 @app.post("/analyze")
-async def analyze(req: AnalyzeRequest) -> dict:
+async def analyze(req: AnalyzeRequest, x_internal_key: str | None = Header(default=None, alias="x-internal-key")) -> dict:
+    if x_internal_key is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing x-internal-key")
+
+    if x_internal_key != _settings.internal_api_key:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid x-internal-key")
+
+    if not req.objectKey:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="objectKey is required")
+
     await _analyze_service.analyze_and_callback(req.imageId, req.imageUrl, req.objectKey)
     return {"success": True, "data": {"imageId": req.imageId}}
 

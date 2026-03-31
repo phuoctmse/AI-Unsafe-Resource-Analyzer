@@ -7,7 +7,7 @@ from typing import Literal
 from ..pipeline.backend_client import post_processed_to_backend
 from ..inference.clip_engine import run_clip_scores
 from ..config import Settings
-from ..storage.image_io import decode_pil_rgb, fetch_image_bytes_http
+from ..storage.image_io import decode_pil_rgb
 from ..inference.labeling import build_reason_short, top_k_labels
 from ..logger import log
 from ..inference.mock_inference import deterministic_label_scores
@@ -25,23 +25,22 @@ class AnalyzeService:
     def _decide_status(scores: dict[str, float], threshold: float) -> Literal["SAFE", "UNSAFE", "ERROR"]:
         return "UNSAFE" if max_unsafe_score(scores) >= threshold else "SAFE"
 
-    async def _load_image_bytes(self, image_url: str, object_key: str) -> bytes:
-        if object_key:
-            return await asyncio.to_thread(
-                fetch_object_bytes,
-                bucket=self._settings.s3_bucket,
-                key=object_key,
-                endpoint=self._settings.s3_endpoint,
-                region=self._settings.s3_region,
-                access_key=self._settings.s3_access_key,
-                secret_key=self._settings.s3_secret_key,
-            )
+    async def _load_image_bytes(self, object_key: str) -> bytes:
+        if not object_key:
+            raise ValueError("object_key is required")
 
-        log("warn", "analyze.no_object_key", fallback="http_get")
-        return await fetch_image_bytes_http(image_url, timeout_s=self._settings.download_timeout_s)
+        return await asyncio.to_thread(
+            fetch_object_bytes,
+            bucket=self._settings.s3_bucket,
+            key=object_key,
+            endpoint=self._settings.s3_endpoint,
+            region=self._settings.s3_region,
+            access_key=self._settings.s3_access_key,
+            secret_key=self._settings.s3_secret_key,
+        )
 
     async def _run_inference_pipeline(self, image_url: str, object_key: str) -> dict[str, float]:
-        raw = await self._load_image_bytes(image_url, object_key)
+        raw = await self._load_image_bytes(object_key)
         image = await asyncio.to_thread(decode_pil_rgb, raw, self._settings.max_image_side)
 
         if self._settings.use_mock_inference:

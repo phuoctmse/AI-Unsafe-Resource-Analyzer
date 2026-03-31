@@ -13,6 +13,16 @@ export const s3Client = new S3Client({
   },
 });
 
+export const publicS3Client = new S3Client({
+  region: config.s3Region,
+  endpoint: config.s3PublicUrl,
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: config.s3AccessKey,
+    secretAccessKey: config.s3SecretKey,
+  },
+});
+
 let bucketReadyPromise: Promise<void> | undefined;
 
 export const ensureBucket = async (): Promise<void> => {
@@ -58,7 +68,7 @@ export const presignPutObject = async (params: {
     ContentType: params.contentType,
   });
 
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+  const uploadUrl = await getSignedUrl(publicS3Client, command, { expiresIn: 300 });
   const imageUrl = buildImageUrl(params.key);
 
   return { uploadUrl, imageUrl, objectKey: params.key };

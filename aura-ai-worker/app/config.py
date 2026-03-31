@@ -7,6 +7,7 @@ class Settings:
     redis_url: str
     scan_queue_key: str
     backend_url: str
+    internal_api_key: str
     model_version: str
     label_set_version: str
     thresholds_version: str
@@ -31,6 +32,7 @@ def load_settings() -> Settings:
         redis_url=os.getenv("REDIS_URL", "redis://localhost:6379"),
         scan_queue_key=os.getenv("SCAN_QUEUE_KEY", "aura:scanQueue"),
         backend_url=os.getenv("BACKEND_URL", "http://localhost:3001"),
+        internal_api_key=os.getenv("INTERNAL_API_KEY", "aura-internal-api-key"),
         model_version=os.getenv("MODEL_VERSION", "openai/clip-vit-base-patch32"),
         label_set_version=os.getenv("LABEL_SET_VERSION", "aura-labels-v1"),
         thresholds_version=os.getenv("THRESHOLDS_VERSION", "aura-thresholds-v1"),

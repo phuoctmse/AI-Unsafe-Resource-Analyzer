@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class AnalyzeRequest(BaseModel):
     imageId: str
     imageUrl: str
-    objectKey: str = ""
+    objectKey: str
 
 
 class ScanTask(BaseModel):

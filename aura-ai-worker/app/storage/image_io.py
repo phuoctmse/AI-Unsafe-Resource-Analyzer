@@ -1,6 +1,4 @@
 import io
-
-import httpx
 from PIL import Image, ImageOps
 
 
@@ -21,10 +19,3 @@ def decode_pil_rgb(data: bytes, max_side: int) -> Image.Image:
         scale = max_side / float(max(w, h))
         im = im.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
     return im
-
-
-async def fetch_image_bytes_http(url: str, timeout_s: float) -> bytes:
-    async with httpx.AsyncClient(timeout=timeout_s) as client:
-        resp = await client.get(url)
-        resp.raise_for_status()
-        return resp.content

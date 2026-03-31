@@ -52,6 +52,14 @@ if (rawPort !== undefined) {
   }
 }
 
+const requireEnv = (name: string): string => {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+  return value;
+};
+
 export const config: AppConfig = {
   backendPort: resolvedPort,
   dashboardCorsOrigins: parseDashboardCorsOrigins(process.env.DASHBOARD_CORS_ORIGINS),
@@ -63,5 +71,5 @@ export const config: AppConfig = {
   s3SecretKey: process.env.S3_SECRET_KEY ?? "aurasecret",
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
   scanQueueKey: process.env.SCAN_QUEUE_KEY ?? "aura:scanQueue",
-  internalApiKey: process.env.INTERNAL_API_KEY ?? "aura-internal-api-key",
+  internalApiKey: requireEnv("INTERNAL_API_KEY"),
 };

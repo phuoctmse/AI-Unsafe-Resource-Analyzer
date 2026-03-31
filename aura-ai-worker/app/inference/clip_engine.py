@@ -86,8 +86,9 @@ def run_clip_scores(image: Image.Image) -> dict[str, float]:
         # Cosine similarities: (N+1,)
         sims = (image_norm @ text_norm.T).squeeze(0)
 
-        unsafe_sims = sims[:len(LABEL_ORDER)]   # one per label
-        safe_sim = sims[len(LABEL_ORDER)]        # safe anchor
+        n = len(CLIP_TEXT_PROMPTS)
+        unsafe_sims = sims[:n]   # one per label
+        safe_sim = sims[n]       # safe anchor (always last)
 
         # Score = how much more the image matches this label vs the safe anchor
         # sigmoid maps (-inf, +inf) → (0, 1)

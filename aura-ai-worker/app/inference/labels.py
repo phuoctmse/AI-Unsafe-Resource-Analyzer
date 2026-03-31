@@ -2,6 +2,8 @@
 Policy label keys and CLIP text prompts (order must stay aligned).
 """
 
+from __future__ import annotations
+
 # Order matches CLIP softmax output indexing.
 LABEL_ORDER: tuple[str, ...] = (
     "safe_neutral",
@@ -56,3 +58,10 @@ NSFW_RELATED: frozenset[str] = frozenset(
 VIOLENCE_RELATED: frozenset[str] = frozenset(
     {"violence_mild", "violence_graphic", "weapons"},
 )
+
+# Validate alignment at import time so misconfiguration is caught immediately.
+if len(CLIP_TEXT_PROMPTS) != len(LABEL_ORDER):
+    raise RuntimeError(
+        f"CLIP_TEXT_PROMPTS ({len(CLIP_TEXT_PROMPTS)}) and LABEL_ORDER "
+        f"({len(LABEL_ORDER)}) must have the same length."
+    )

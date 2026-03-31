@@ -1,17 +1,18 @@
 # 🛡️ Aura - AI Unsafe Resource Analyzer
 
-**Aura** is a high-performance, real-time content moderation system designed to automatically detect and filter unsafe image content (NSFW, violence, spam). Built with a microservices architecture, it ensures platform safety with sub-second latency.
+**Aura** is a real-time image moderation system. It ingests uploads, scans them asynchronously, and streams moderation results + reasons to a dashboard.
 
 ---
 
 ## 🚀 Key Features
 
 * **Real-time Moderation:** Instant image analysis using WebSockets (Socket.io).
-* **AI-Powered Detection:** Leverages Python-based Vision models (NudeNet/Transformers) for high accuracy.
+* **AI-Powered Detection (planned):** Real model inference in the Python worker (vision-text / CLIP-style).
 * **Live Admin Dashboard:** A sleek, reactive interface to monitor incoming streams and alerts.
 * **Scalable Architecture:** Decoupled Node.js Gateway and Python AI Workers.
 * **Comprehensive Logging:** Detailed audit trails for every scanned resource.
 * **Observability-ready logs:** Backend/worker emit single-line JSON logs to stdout (Loki-friendly).
+* **Explainable decisions:** Stores `topLabels` (top 3 reasons) per image for the UI.
 
 ## 🏗️ Tech Stack
 
@@ -19,7 +20,7 @@
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS v4, shadcn/ui, lucide-react |
 | **Backend API** | Node.js 22 LTS, TypeScript, Hono, Prisma ORM, Socket.io |
-| **AI Engine** | Python 3.12, FastAPI, Pydantic v2, NudeNet/Transformers (optional ONNX Runtime) |
+| **AI Engine** | Python, FastAPI, Pydantic v2 (real inference planned) |
 | **Database** | PostgreSQL 16 + Prisma |
 | **Real-time / Async** | Redis 7 (Pub/Sub + cache + lightweight queues) |
 | **Infrastructure** | Docker, Docker Compose, S3-compatible storage (MinIO for local dev) |
@@ -62,10 +63,6 @@ python -m pip install -r requirements.txt
 docker compose up -d
 ```
 
-### Trusted dashboard origins
-
-Set `DASHBOARD_CORS_ORIGINS` on `aura-backend` to a comma-separated list of dashboard origins allowed to read browser-facing API responses. If unset, the backend defaults to `http://localhost:3000` for local development.
-
 ### Prisma setup
 
 ```bash
@@ -73,6 +70,14 @@ Set `DASHBOARD_CORS_ORIGINS` on `aura-backend` to a comma-separated list of dash
 pnpm --filter aura-backend prisma:validate
 pnpm --filter aura-backend prisma:generate
 pnpm --filter aura-backend exec prisma migrate dev --name init_imagelog
+```
+
+### Run services (dev)
+
+```bash
+pnpm dev:backend
+pnpm dev:frontend
+pnpm dev:worker
 ```
 
 ### Storage upload API (current)

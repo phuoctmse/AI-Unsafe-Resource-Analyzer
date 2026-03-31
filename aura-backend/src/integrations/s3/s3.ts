@@ -1,11 +1,21 @@
 import { S3Client, CreateBucketCommand, HeadBucketCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { config } from "./config";
+import { config } from "../../config";
 
 export const s3Client = new S3Client({
   region: config.s3Region,
   endpoint: config.s3Endpoint,
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: config.s3AccessKey,
+    secretAccessKey: config.s3SecretKey,
+  },
+});
+
+export const publicS3Client = new S3Client({
+  region: config.s3Region,
+  endpoint: config.s3PublicUrl,
   forcePathStyle: true,
   credentials: {
     accessKeyId: config.s3AccessKey,
@@ -37,8 +47,13 @@ export const ensureBucket = async (): Promise<void> => {
 };
 
 export const buildImageUrl = (key: string): string => {
-  // For MinIO/S3 compatible endpoints, a simple URL works for skeleton purposes.
-  return `${config.s3Endpoint}/${config.s3Bucket}/${key}`;
+  const publicBaseUrl = config.s3PublicUrl.replace(/\/+$/, "");
+  const encodedKey = key
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `${publicBaseUrl}/${config.s3Bucket}/${encodedKey}`;
 };
 
 export const presignPutObject = async (params: {
@@ -53,7 +68,7 @@ export const presignPutObject = async (params: {
     ContentType: params.contentType,
   });
 
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+  const uploadUrl = await getSignedUrl(publicS3Client, command, { expiresIn: 300 });
   const imageUrl = buildImageUrl(params.key);
 
   return { uploadUrl, imageUrl, objectKey: params.key };
@@ -68,4 +83,3 @@ export const headObjectExists = async (key: string): Promise<boolean> => {
     return false;
   }
 };
-

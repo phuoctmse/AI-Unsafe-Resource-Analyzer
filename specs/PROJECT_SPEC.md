@@ -1,4 +1,4 @@
-# Project Specification: Aura - AI Unsafe Resource Analyzer (Full Edition)
+# Project Specification: Aura - AI Unsafe Resource Analyzer
 
 ## 1. Solution Architecture Discussion
 - **Pattern:** Event-Driven Microservices with Asynchronous Processing.
@@ -8,7 +8,7 @@
 
 
 ## 2. High-Level Design (HLD)
-- **Flow:** User -> Nginx Proxy -> Hono API -> S3 Storage & Redis Queue -> Python Worker (ONNX Inference) -> PostgreSQL -> Socket.io Broadcast -> Next.js Dashboard.
+- **Flow:** User -> Nginx Proxy -> Hono API -> S3 Storage & Redis Queue -> Python Worker (real inference) -> PostgreSQL -> Socket.io Broadcast -> Next.js Dashboard.
 
 ## 3. Service Description
 - **Aura-Gateway (Hono/Node.js 22):** Manages REST endpoints, JWT authentication, file upload validation, and WebSocket state.
@@ -34,7 +34,7 @@
 
 ## 8. Performance & Scalability
 - **Horizontal Scaling:** Auto-scaling AI Workers based on Redis queue length.
-- **Optimization:** ONNX Runtime (sub-500ms latency), Content-addressable hashing for duplicate images.
+- **Optimization:** Content-addressable hashing for duplicate images, CPU-first inference, optional GPU later.
 
 ## 9. DevOps, CI/CD & IaC
 - **IaC:** Terraform v1.7+ for AWS (VPC, S3, RDS, ECS).
@@ -55,12 +55,20 @@
 - [x] **Phase 5: Aura Dashboard** - Create Next.js 15 UI with real-time stream updates and Shadcn components.
 - [ ] **Phase 6: DevOps & Security** - Setup GitHub Actions, Trivy scan, and Rate limiting.
 
-## 12. Task Tracking Policy
+## 12. Real Inference Plan (Next Work)
+- **Goal:** Replace mock inference with real image inference and store reasons for moderation decisions.
+- **Model approach (chosen):** Zero-shot CLIP / vision-text model with a **small label set** (≈ 15 labels).
+- **Storage input:** Worker fetches image bytes from **S3/MinIO** using the stored object key.
+- **DB output:** Store `topLabels` (top 3) for UI display, plus `modelVersion` and `thresholdsVersion` for auditability.
+- **Decisioning:** Map label scores to `SAFE|UNSAFE` via versioned thresholds.
+- **Cost strategy:** CPU-first with bounded concurrency; scale workers on Redis queue depth; dedupe repeated images by content hash.
+
+## 13. Task Tracking Policy
 - **Canonical tracker:** This file (`specs/PROJECT_SPEC.md`) is the single source of truth for task progress.
 - **README policy:** `README.md` stays repository-facing and should contain only summarized roadmap/status.
 - **Update rule:** When a phase status changes, update this roadmap first, then sync any high-level summary in `README.md`.
 
-## 13. Current Execution Notes
+## 14. Current Execution Notes
 - **Phase 2 status:** Completed.
 - **Completed items:**
   1. Prisma schema + migration (`init_imagelog`) applied to local PostgreSQL.
@@ -83,22 +91,10 @@
 ---
 
 ## Technical Stack Summary
-- **Frontend:** Next.js 15, React 19, Tailwind CSS v4, Zustand.
+- **Frontend:** Next.js 15, React 19, Tailwind CSS v4.
 - **Backend:** Hono (Node.js 22), Prisma ORM, Socket.io.
-- **AI Worker:** FastAPI (Python 3.12), ONNX Runtime.
-- **Persistence:** PostgreSQL 16, Redis 7, MinIO (S3-compatible).
+- **AI Worker:** FastAPI (Python), real inference planned (vision-text / CLIP-style).
+- **Persistence:** PostgreSQL, Redis, MinIO (S3-compatible).
 
-## Database Schema (Prisma)
-```prisma
-model ImageLog {
-  id              String     @id @default(uuid())
-  imageUrl        String
-  status          ScanStatus @default(PENDING)
-  nsfwScore       Float?
-  violenceScore   Float?
-  processedTimeMs Int?       
-  createdAt       DateTime   @default(now())
-}
-
-enum ScanStatus { PENDING, SAFE, UNSAFE, ERROR }
-```
+## Database Schema
+- Prisma schema is the source of truth: `aura-backend/prisma/schema.prisma`.

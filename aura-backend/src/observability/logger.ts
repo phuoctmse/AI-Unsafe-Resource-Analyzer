@@ -27,4 +27,3 @@ export const log = (level: LogLevel, event: string, fields: Record<string, unkno
   // Avoid logging secrets (presigned URLs, keys, tokens).
   console.log(JSON.stringify({ ...base, ...fields }));
 };
-

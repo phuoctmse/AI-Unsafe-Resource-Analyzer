@@ -8,3 +8,19 @@ __pycache__/
 *.pyc
 *.tsbuildinfo
 .agent/
+
+# Terraform
+**/.terraform/
+infra/terraform/bootstrap/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfstate.*.backup
+**/.terraformrc
+**/terraform.rc
+**/terraform.tfvars
+**/terraform.tfvars.json
+**/*.auto.tfvars
+**/*.auto.tfvars.json
+**/tfplan
+**/tfplan.json
+**/.terraform.tfstate.lock.info

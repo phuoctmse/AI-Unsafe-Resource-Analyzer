@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 
 def _ts() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def log(level: str, event: str, **fields: Any) -> None:
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "ts": _ts(),
         "level": level,
         "service": "aura-ai-worker",

@@ -4,16 +4,16 @@ import asyncio
 import time
 from typing import Literal
 
-from ..pipeline.backend_client import post_processed_to_backend
-from ..inference.clip_engine import run_clip_scores
 from ..config import Settings
-from ..storage.image_io import decode_pil_rgb
+from ..inference.clip_engine import run_clip_scores
 from ..inference.labeling import build_reason_short, top_k_labels
-from ..logger import log
 from ..inference.mock_inference import deterministic_label_scores
 from ..inference.scoring import aggregate_nsfw_violence, max_unsafe_score
-from ..storage.s3_fetch import fetch_object_bytes
+from ..logger import log
+from ..pipeline.backend_client import post_processed_to_backend
 from ..schemas import ProcessedCallback
+from ..storage.image_io import decode_pil_rgb
+from ..storage.s3_fetch import fetch_object_bytes
 
 
 class AnalyzeService:

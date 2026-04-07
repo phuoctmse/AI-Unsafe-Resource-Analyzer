@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 import torch
 from PIL import Image
 
-from .labels import CLIP_TEXT_PROMPTS, LABEL_ORDER
 from ..logger import log
+from .labels import CLIP_TEXT_PROMPTS, LABEL_ORDER
 
 if TYPE_CHECKING:
     from transformers import CLIPModel, CLIPProcessor

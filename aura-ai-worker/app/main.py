@@ -1,11 +1,11 @@
 import asyncio
 
 import redis.asyncio as redis
-from fastapi import FastAPI, Header, HTTPException, status
 from dotenv import load_dotenv
+from fastapi import FastAPI, Header, HTTPException, status
 
-from .inference.clip_engine import is_loaded, load_clip
 from .config import load_settings
+from .inference.clip_engine import is_loaded, load_clip
 from .logger import log
 from .pipeline.queue_consumer import consumer_loop
 from .schemas import AnalyzeRequest

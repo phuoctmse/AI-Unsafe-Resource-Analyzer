@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterable, Literal
+from collections.abc import Iterable
+from typing import Literal
 
 
 def top_k_labels(scores: dict[str, float], k: int = 3) -> list[dict[str, float | str]]:

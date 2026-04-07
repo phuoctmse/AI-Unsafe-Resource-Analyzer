@@ -13,15 +13,15 @@ const app = new Hono();
 
 const dashboardCors = cors({
   origin: (origin) => {
-    if (!origin) return null;
+    if (!origin) return "*";
     return config.dashboardCorsOrigins.includes(origin) ? origin : null;
   },
-  allowMethods: ["GET", "POST", "OPTIONS"],
+  allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization", "x-request-id", "x-internal-key"],
+  credentials: true,
 });
 
-app.use("/uploads/*", dashboardCors);
-app.use("/images", dashboardCors);
+app.use("*", dashboardCors);
 
 const httpServer = serve({
   fetch: app.fetch,

@@ -19,7 +19,7 @@ on:
       - '.github/workflows/ci-frontend.yml'
 
 env:
-  IMAGE: ghcr.io/${{ github.repository }}/aura-frontend
+  IMAGE: ghcr.io/${{ github.repository_owner }}/aura-frontend
 
 jobs:
   typecheck:
@@ -89,7 +89,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Upload Trivy results to GitHub Security
-        if: always()
+        if: always() && hashFiles('trivy-frontend.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-frontend.sarif

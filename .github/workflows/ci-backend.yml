@@ -40,6 +40,8 @@ jobs:
 
       - name: Generate Prisma client
         working-directory: aura-backend
+        env:
+          DATABASE_URL: postgresql://prisma:prisma@127.0.0.1:5432/aura?schema=public
         run: pnpm exec prisma generate
 
       - name: Type check
@@ -48,6 +50,8 @@ jobs:
 
       - name: Prisma validate
         working-directory: aura-backend
+        env:
+          DATABASE_URL: postgresql://prisma:prisma@127.0.0.1:5432/aura?schema=public
         run: pnpm exec prisma validate
 
   build-and-scan:

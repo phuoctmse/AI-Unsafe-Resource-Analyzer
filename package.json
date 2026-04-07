@@ -3,6 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.17.0",
+  "pnpm": {
+    "overrides": {
+      "defu": "6.1.5",
+      "effect": "3.20.0"
+    }
+  },
   "scripts": {
     "dev:frontend": "pnpm --filter aura-frontend dev",
     "dev:backend": "pnpm --filter aura-backend dev",

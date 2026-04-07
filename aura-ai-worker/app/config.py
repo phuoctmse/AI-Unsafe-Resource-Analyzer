@@ -15,10 +15,10 @@ class Settings:
     unsafe_threshold: float
     use_mock_inference: bool
     clip_model_id: str
-    s3_endpoint: str
+    s3_endpoint: str | None
     s3_region: str
-    s3_access_key: str
-    s3_secret_key: str
+    s3_access_key: str | None
+    s3_secret_key: str | None
     s3_bucket: str
     max_image_side: int
     inference_timeout_s: float
@@ -40,11 +40,11 @@ def load_settings() -> Settings:
         unsafe_threshold=float(os.getenv("UNSAFE_THRESHOLD", "0.22")),
         use_mock_inference=os.getenv("USE_MOCK_INFERENCE", "false").lower() in ("1", "true", "yes"),
         clip_model_id=os.getenv("CLIP_MODEL_ID", "openai/clip-vit-base-patch32"),
-        s3_endpoint=os.getenv("S3_ENDPOINT", "http://localhost:9000"),
+        s3_endpoint=os.getenv("S3_ENDPOINT") or None,
         s3_region=os.getenv("S3_REGION", "us-east-1"),
-        s3_access_key=os.getenv("S3_ACCESS_KEY", "aura"),
-        s3_secret_key=os.getenv("S3_SECRET_KEY", "aurasecret"),
-        s3_bucket=os.getenv("S3_BUCKET", "aura-images"),
+        s3_access_key=os.getenv("S3_ACCESS_KEY") or None,
+        s3_secret_key=os.getenv("S3_SECRET_KEY") or None,
+        s3_bucket=os.getenv("S3_BUCKET") or os.getenv("S3_BUCKET_NAME") or "aura-images",
         max_image_side=int(os.getenv("MAX_IMAGE_SIDE", "512")),
         inference_timeout_s=float(os.getenv("INFERENCE_TIMEOUT_S", "120")),
         download_timeout_s=float(os.getenv("DOWNLOAD_TIMEOUT_S", "30")),

@@ -5,10 +5,10 @@ export type AppConfig = {
   dashboardCorsOrigins: string[];
   s3Bucket: string;
   s3Region: string;
-  s3Endpoint: string;
-  s3PublicUrl: string;
-  s3AccessKey: string;
-  s3SecretKey: string;
+  s3Endpoint: string | undefined;
+  s3PublicUrl: string | undefined;
+  s3AccessKey: string | undefined;
+  s3SecretKey: string | undefined;
   redisUrl: string;
   scanQueueKey: string;
   internalApiKey: string;
@@ -63,12 +63,12 @@ const requireEnv = (name: string): string => {
 export const config: AppConfig = {
   backendPort: resolvedPort,
   dashboardCorsOrigins: parseDashboardCorsOrigins(process.env.DASHBOARD_CORS_ORIGINS),
-  s3Bucket: process.env.S3_BUCKET ?? "aura-images",
+  s3Bucket: process.env.S3_BUCKET ?? process.env.S3_BUCKET_NAME ?? "aura-images",
   s3Region: process.env.S3_REGION ?? "us-east-1",
-  s3Endpoint: process.env.S3_ENDPOINT ?? "http://localhost:9000",
-  s3PublicUrl: process.env.S3_PUBLIC_URL ?? process.env.S3_ENDPOINT ?? "http://localhost:9000",
-  s3AccessKey: process.env.S3_ACCESS_KEY ?? "aura",
-  s3SecretKey: process.env.S3_SECRET_KEY ?? "aurasecret",
+  s3Endpoint: process.env.S3_ENDPOINT?.trim() || undefined,
+  s3PublicUrl: process.env.S3_PUBLIC_URL?.trim() || undefined,
+  s3AccessKey: process.env.S3_ACCESS_KEY?.trim() || undefined,
+  s3SecretKey: process.env.S3_SECRET_KEY?.trim() || undefined,
   redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
   scanQueueKey: process.env.SCAN_QUEUE_KEY ?? "aura:scanQueue",
   internalApiKey: requireEnv("INTERNAL_API_KEY"),

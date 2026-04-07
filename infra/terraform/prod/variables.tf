@@ -118,3 +118,9 @@ variable "worker_max_count" {
   type        = number
   default     = 10
 }
+
+variable "budget_alert_email" {
+  description = "Email nhận cảnh báo AWS Budget (để trống nếu không cần)"
+  type        = string
+  default     = ""
+}

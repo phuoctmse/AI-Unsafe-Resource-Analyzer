@@ -126,6 +126,7 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "PORT", value = "3001" },
       { name = "S3_BUCKET_NAME", value = var.images_bucket_name },
       { name = "AWS_REGION", value = local.region },
+      { name = "DASHBOARD_CORS_ORIGINS", value = "https://${local.app_fqdn}" },
     ]
 
     secrets = [

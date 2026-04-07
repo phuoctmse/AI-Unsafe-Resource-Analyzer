@@ -109,6 +109,57 @@ resource "aws_lb_listener_rule" "api" {
   }
 }
 
+# Route /uploads/* → backend
+resource "aws_lb_listener_rule" "uploads" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 15
+
+  condition {
+    path_pattern {
+      values = ["/uploads/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+}
+
+# Route /images* → backend
+resource "aws_lb_listener_rule" "images" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 16
+
+  condition {
+    path_pattern {
+      values = ["/images", "/images/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+}
+
+# Route /health → backend
+resource "aws_lb_listener_rule" "health" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 17
+
+  condition {
+    path_pattern {
+      values = ["/health"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
+  }
+}
+
 # Route /socket.io/* → backend (WebSocket upgrade)
 resource "aws_lb_listener_rule" "socketio" {
   listener_arn = aws_lb_listener.https.arn

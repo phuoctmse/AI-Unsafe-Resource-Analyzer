@@ -1,0 +1,171 @@
+{
+  "info": {
+    "_postman_id": "a1cd3fad-6c74-42a9-b0c4-a57bf6609250",
+    "name": "AURA",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45156734"
+  },
+  "item": [
+    {
+      "name": "Presign",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let jsonData = pm.response.json();\r",
+              "\r",
+              "\r",
+              "\r",
+              "pm.collectionVariables.set(\"uploadUrl\", jsonData.data.uploadUrl);\r",
+              "pm.collectionVariables.set(\"imageId\", jsonData.data.imageId);\r",
+              "pm.collectionVariables.set(\"key\", jsonData.data.key);\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Lấy giá trị contentType từ request body (ở dạng JSON)\r",
+              "let requestBody = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};\r",
+              "\r",
+              "// Kiểm tra nếu contentType tồn tại trong body\r",
+              "let contentType = requestBody.contentType;\r",
+              "\r",
+              "if (contentType) {\r",
+              "    // Lưu vào collection variable\r",
+              "    pm.collectionVariables.set(\"savedContentType\", contentType);\r",
+              "    console.log(\"Saved contentType:\", contentType);\r",
+              "} else {\r",
+              "    console.log(\"No contentType found in the request body.\");\r",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"filename\":\"land.jpg\",\r\n    \"contentType\":\"image/jpg\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{serverrUrl}}/uploads/presign",
+          "host": [
+            "{{serverrUrl}}"
+          ],
+          "path": [
+            "uploads",
+            "presign"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Complete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"imageId\": \"{{imageId}}\",\r\n    \"key\": \"{{key}}\"\r\n}"
+        },
+        "url": {
+          "raw": "{{serverrUrl}}/uploads/complete",
+          "host": [
+            "{{serverrUrl}}"
+          ],
+          "path": [
+            "uploads",
+            "complete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload to S3",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "{{savedContentType}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {
+            "src": "/C:/Users/ADMIN/Downloads/anh-nguc-to.jpg"
+          }
+        },
+        "url": {
+          "raw": "{{uploadUrl}}",
+          "host": [
+            "{{uploadUrl}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "serverrUrl",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "uploadUrl",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "imageId",
+      "value": ""
+    },
+    {
+      "key": "key",
+      "value": ""
+    },
+    {
+      "key": "savedContentType",
+      "value": ""
+    }
+  ]
+}

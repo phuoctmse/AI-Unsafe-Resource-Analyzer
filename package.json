@@ -3,6 +3,16 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.17.0",
+  "pnpm": {
+    "overrides": {
+      "brace-expansion": "2.0.3",
+      "brace-expansion@2.0.2": "2.0.3",
+      "defu": "6.1.5",
+      "effect": "3.20.0",
+      "picomatch": "4.0.4",
+      "picomatch@4.0.3": "4.0.4"
+    }
+  },
   "scripts": {
     "dev:frontend": "pnpm --filter aura-frontend dev",
     "dev:backend": "pnpm --filter aura-backend dev",

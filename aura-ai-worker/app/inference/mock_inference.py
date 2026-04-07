@@ -36,7 +36,7 @@ def deterministic_label_scores(seed: str) -> dict[str, float]:
     """
     scores: dict[str, float] = {}
     for label in LABEL_ORDER:
-        digest = hashlib.sha256(f"{seed}|{label}".encode("utf-8")).digest()
+        digest = hashlib.sha256(f"{seed}|{label}".encode()).digest()
         jitter = (int.from_bytes(digest[0:4], "big") / 2**32 - 0.5) * 2 * _JITTER_RANGE
         scores[label] = max(0.0, min(1.0, _BASELINE[label] + jitter))
     return scores

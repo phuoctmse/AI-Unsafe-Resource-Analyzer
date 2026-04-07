@@ -125,6 +125,8 @@ resource "aws_ecs_task_definition" "backend" {
       { name = "NODE_ENV", value = "production" },
       { name = "PORT", value = "3001" },
       { name = "S3_BUCKET_NAME", value = var.images_bucket_name },
+      { name = "S3_REGION", value = local.region },
+      { name = "S3_PUBLIC_URL", value = "https://${var.images_bucket_name}.s3.${local.region}.amazonaws.com" },
       { name = "AWS_REGION", value = local.region },
       { name = "DASHBOARD_CORS_ORIGINS", value = "https://${local.app_fqdn}" },
     ]
@@ -254,7 +256,7 @@ resource "aws_ecs_service" "frontend" {
   depends_on = [aws_lb_listener.https]
 
   lifecycle {
-    ignore_changes = [task_definition, desired_count]
+    ignore_changes = [desired_count]
   }
 
   tags = { Name = "${local.name_prefix}-svc-frontend" }
@@ -282,7 +284,7 @@ resource "aws_ecs_service" "backend" {
   depends_on = [aws_lb_listener.https]
 
   lifecycle {
-    ignore_changes = [task_definition, desired_count]
+    ignore_changes = [desired_count]
   }
 
   tags = { Name = "${local.name_prefix}-svc-backend" }
@@ -316,7 +318,7 @@ resource "aws_ecs_service" "worker" {
   # No load_balancer block — worker is internal only, health checked via SG
 
   lifecycle {
-    ignore_changes = [task_definition, desired_count]
+    ignore_changes = [desired_count]
   }
 
   tags = { Name = "${local.name_prefix}-svc-worker" }

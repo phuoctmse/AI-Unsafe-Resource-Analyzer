@@ -5,22 +5,43 @@ import { config } from "../../config";
 
 export const s3Client = new S3Client({
   region: config.s3Region,
-  endpoint: config.s3Endpoint,
-  forcePathStyle: true,
-  credentials: {
-    accessKeyId: config.s3AccessKey,
-    secretAccessKey: config.s3SecretKey,
-  },
+  ...(config.s3Endpoint
+    ? {
+        endpoint: config.s3Endpoint,
+        forcePathStyle: true,
+      }
+    : {}),
+  ...(config.s3AccessKey && config.s3SecretKey
+    ? {
+        credentials: {
+          accessKeyId: config.s3AccessKey,
+          secretAccessKey: config.s3SecretKey,
+        },
+      }
+    : {}),
 });
 
 export const publicS3Client = new S3Client({
   region: config.s3Region,
-  endpoint: config.s3PublicUrl,
-  forcePathStyle: true,
-  credentials: {
-    accessKeyId: config.s3AccessKey,
-    secretAccessKey: config.s3SecretKey,
-  },
+  ...(config.s3PublicUrl
+    ? {
+        endpoint: config.s3PublicUrl,
+        forcePathStyle: true,
+      }
+    : config.s3Endpoint
+      ? {
+          endpoint: config.s3Endpoint,
+          forcePathStyle: true,
+        }
+      : {}),
+  ...(config.s3AccessKey && config.s3SecretKey
+    ? {
+        credentials: {
+          accessKeyId: config.s3AccessKey,
+          secretAccessKey: config.s3SecretKey,
+        },
+      }
+    : {}),
 });
 
 let bucketReadyPromise: Promise<void> | undefined;
@@ -47,7 +68,7 @@ export const ensureBucket = async (): Promise<void> => {
 };
 
 export const buildImageUrl = (key: string): string => {
-  const publicBaseUrl = config.s3PublicUrl.replace(/\/+$/, "");
+  const publicBaseUrl = (config.s3PublicUrl ?? `https://${config.s3Bucket}.s3.${config.s3Region}.amazonaws.com`).replace(/\/+$/, "");
   const encodedKey = key
     .split("/")
     .map((segment) => encodeURIComponent(segment))

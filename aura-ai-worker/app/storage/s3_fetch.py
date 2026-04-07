@@ -7,25 +7,35 @@ from botocore.exceptions import ClientError
 from ..logger import log
 
 
-def _client(endpoint: str, region: str, access_key: str, secret_key: str) -> Any:
-    return boto3.client(
-        "s3",
-        endpoint_url=endpoint,
-        region_name=region,
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        config=Config(signature_version="s3v4", s3={"addressing_style": "path"}),
-    )
+def _client(
+    endpoint: str | None,
+    region: str,
+    access_key: str | None,
+    secret_key: str | None,
+) -> Any:
+    kwargs: dict[str, Any] = {
+        "region_name": region,
+        "config": Config(signature_version="s3v4", s3={"addressing_style": "path"}),
+    }
+
+    if endpoint:
+        kwargs["endpoint_url"] = endpoint
+
+    if access_key and secret_key:
+        kwargs["aws_access_key_id"] = access_key
+        kwargs["aws_secret_access_key"] = secret_key
+
+    return boto3.client("s3", **kwargs)
 
 
 def fetch_object_bytes(
     *,
     bucket: str,
     key: str,
-    endpoint: str,
+    endpoint: str | None,
     region: str,
-    access_key: str,
-    secret_key: str,
+    access_key: str | None,
+    secret_key: str | None,
 ) -> bytes:
     cli = _client(endpoint, region, access_key, secret_key)
     try:
